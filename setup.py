@@ -11,7 +11,7 @@ config = {
   'download_url': 'DOWNLOAD_URL', 
   'author_email': 'shaldengeki@gmail.com', 
   'version': '0.1.0', 
-  'install_requires': ['nose', 'BeautifulSoup', 'requests', 'pytz'], 
+  'install_requires': ['nose', 'beautifulsoup4', 'requests', 'pytz'], 
   'packages': ['myanimelist'], 
   'scripts': []
 }
