@@ -241,10 +241,11 @@ class Anime(Base):
         # parse link: may be manga or anime.
         href_parts = link.get('href').split('/')
         title = link.text
-        obj_id = int(href_parts[-2])
-        if 'manga' in href_parts:
+        obj_id = int(href_parts[4])
+        non_title_parts = href_parts[:5]
+        if 'manga' in non_title_parts:
           new_obj = self.session.manga(obj_id).set({'title': title})
-        elif 'anime' in href_parts:
+        elif 'anime' in non_title_parts:
           new_obj = self.session.anime(obj_id).set({'title': title})
         else:
           raise MalformedAnimePageError(self)
