@@ -218,39 +218,43 @@ class Anime(Base):
     utilities.extract_tags(synopsis_elt.find_all('h2'))
     anime_info['synopsis'] = synopsis_elt.text.strip()
 
-    related_elt = anime_page.find('h2', text=u'Related Anime').parent
-    utilities.extract_tags(related_elt.find_all('h2'))
-    related = {}
-    for link in related_elt.find_all('a'):
-      curr_elt = link.previous_sibling
-      if curr_elt is None:
-        # we've reached the end of the list.
-        break
-      related_type = None
-      while True:
-        if not curr_elt:
+    related_title = anime_page.find('h2', text=u'Related Anime')
+    if related_title:
+      related_elt = related_title.parent
+      utilities.extract_tags(related_elt.find_all('h2'))
+      related = {}
+      for link in related_elt.find_all('a'):
+        curr_elt = link.previous_sibling
+        if curr_elt is None:
+          # we've reached the end of the list.
+          break
+        related_type = None
+        while True:
+          if not curr_elt:
+            raise MalformedAnimePageError(self)
+          if isinstance(curr_elt, bs4.NavigableString):
+            type_match = re.match('(?P<type>[a-zA-Z\ \-]+):', curr_elt)
+            if type_match:
+              related_type = type_match.group('type')
+              break
+          curr_elt = curr_elt.previous_sibling
+        # parse link: may be manga or anime.
+        href_parts = link.get('href').split('/')
+        title = link.text
+        obj_id = int(href_parts[-2])
+        if 'manga' in href_parts:
+          new_obj = self.session.manga(obj_id).set({'title': title})
+        elif 'anime' in href_parts:
+          new_obj = self.session.anime(obj_id).set({'title': title})
+        else:
           raise MalformedAnimePageError(self)
-        if isinstance(curr_elt, bs4.NavigableString):
-          type_match = re.match('(?P<type>[a-zA-Z\ \-]+):', curr_elt)
-          if type_match:
-            related_type = type_match.group('type')
-            break
-        curr_elt = curr_elt.previous_sibling
-      # parse link: may be manga or anime.
-      href_parts = link.get('href').split('/')
-      title = link.text
-      obj_id = int(href_parts[-2])
-      if 'manga' in href_parts:
-        new_obj = self.session.manga(obj_id).set({'title': title})
-      elif 'anime' in href_parts:
-        new_obj = self.session.anime(obj_id).set({'title': title})
-      else:
-        raise MalformedAnimePageError(self)
-      if related_type not in related:
-        related[related_type] = [new_obj]
-      else:
-        related[related_type].append(new_obj)
-    anime_info['related'] = related
+        if related_type not in related:
+          related[related_type] = [new_obj]
+        else:
+          related[related_type].append(new_obj)
+      anime_info['related'] = related
+    else:
+      anime_info['related'] = None
     return anime_info
 
   def load(self):
