@@ -13,7 +13,10 @@ class MalformedAnimePageError(Error):
   def __init__(self, anime, html, message=None):
     super(MalformedAnimePageError, self).__init__(message=message)
     self.anime = anime
-    self.html = unicode(html)
+    if isinstance(html, unicode):
+      self.html = html
+    else:
+      self.html = unicode(html)
   def __str__(self):
     return "\n".join([
       super(MalformedAnimePageError, self).__str__(),
