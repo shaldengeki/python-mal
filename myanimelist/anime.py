@@ -21,8 +21,8 @@ class MalformedAnimePageError(Error):
     return "\n".join([
       super(MalformedAnimePageError, self).__str__(),
       "Anime ID: " + unicode(self.anime.id),
-      "HTML: " + self.html.encode('utf-8')
-    ])
+      "HTML: " + self.html
+    ]).encode('utf-8')
 
 class InvalidAnimeError(Error):
   def __init__(self, anime, message=None):
