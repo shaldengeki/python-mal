@@ -10,18 +10,20 @@ import utilities
 from base import Base, Error, loadable
 
 class MalformedAnimePageError(Error):
-  def __init__(self, anime):
-    super(MalformedAnimePageError, self).__init__()
+  def __init__(self, anime, html, message=None):
+    super(MalformedAnimePageError, self).__init__(message=message)
     self.anime = anime
+    self.html = unicode(html)
   def __str__(self):
     return "\n".join([
       super(MalformedAnimePageError, self).__str__(),
-      "Anime ID: " + unicode(self.anime.id)
+      "Anime ID: " + unicode(self.anime.id),
+      "HTML: " + html.encode('utf-8')
     ])
 
 class InvalidAnimeError(Error):
-  def __init__(self, anime):
-    super(InvalidAnimeError, self).__init__()
+  def __init__(self, anime, message=None):
+    super(InvalidAnimeError, self).__init__(message=message)
     self.anime = anime
   def __str__(self):
     return "\n".join([
@@ -92,7 +94,7 @@ class Anime(Base):
       if error_tag:
         raise InvalidAnimeError(self)
       # otherwise, raise a MalformedAnimePageError.
-      raise MalformedAnimePageError(self)
+      raise MalformedAnimePageError(self, html, message="Could not find title div")
 
     utilities.extract_tags(title_tag.find_all())
     anime_info['title'] = title_tag.text.strip()
@@ -140,18 +142,18 @@ class Anime(Base):
       try:
         aired_date = parse_date(aired_parts[0])
       except ValueError:
-        raise MalformedAnimePageError(self)
+        raise MalformedAnimePageError(self, aired_parts[0], message="Could not parse single air date")
       anime_info['aired'] = (aired_date,)
     else:
       # two airing dates.
       try:
         air_start = parse_date(aired_parts[0])
       except ValueError:
-        raise MalformedAnimePageError(self)
+        raise MalformedAnimePageError(self, aired_parts[0], message="Could not parse first of two air dates")
       try:
         air_end = parse_date(aired_parts[1])
       except ValueError:
-        raise MalformedAnimePageError(self)
+        raise MalformedAnimePageError(self, aired_parts[1], message="Could not parse second of two air dates")
       anime_info['aired'] = (air_start, air_end)
 
     producers_tag = aired_tag.find_next_sibling('div')
@@ -231,7 +233,7 @@ class Anime(Base):
         related_type = None
         while True:
           if not curr_elt:
-            raise MalformedAnimePageError(self)
+            raise MalformedAnimePageError(self, html, message="Prematurely reached end of related anime listing")
           if isinstance(curr_elt, bs4.NavigableString):
             type_match = re.match('(?P<type>[a-zA-Z\ \-]+):', curr_elt)
             if type_match:
@@ -248,7 +250,7 @@ class Anime(Base):
         elif 'anime' in non_title_parts:
           new_obj = self.session.anime(obj_id).set({'title': title})
         else:
-          raise MalformedAnimePageError(self)
+          raise MalformedAnimePageError(self, link, message="Related thing is of unknown type")
         if related_type not in related:
           related[related_type] = [new_obj]
         else:

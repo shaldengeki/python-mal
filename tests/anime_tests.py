@@ -66,7 +66,7 @@ class testAnimeClass(object):
     assert self.spicy_wolf.episodes == 13
     assert self.bebop.episodes == 26
     assert self.totoro.episodes == 1
-    assert self.space_dandy.episodes == 0
+    assert self.space_dandy.episodes == 13
 
   def testStatus(self):
     assert self.spicy_wolf.status == u'Finished Airing'
@@ -77,8 +77,8 @@ class testAnimeClass(object):
   def testAired(self):
     assert self.spicy_wolf.aired == (datetime.date(month=1, day=8, year=2008), datetime.date(month=5, day=30, year=2008))
     assert self.bebop.aired == (datetime.date(month=4, day=3, year=1998), datetime.date(month=4, day=24, year=1999))
-    assert self.space_dandy.aired == (datetime.date(month=1, day=5, year=2014), None)
-    assert self.totoro.aired == (datetime.date(month=4, day=16, year=1988))
+    assert self.space_dandy.aired == (datetime.date(month=1, day=5, year=2014),datetime.date(month=3,day=30,year=2014))
+    assert self.totoro.aired == (datetime.date(month=4, day=16, year=1988),)
 
   def testDuration(self):
     assert self.spicy_wolf.duration == 24
