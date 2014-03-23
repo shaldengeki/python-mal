@@ -141,7 +141,7 @@ class Anime(Base):
         aired_date = parse_date(aired_parts[0])
       except ValueError:
         raise MalformedAnimePageError(self)
-      anime_info['aired'] = (aired_date)
+      anime_info['aired'] = (aired_date,)
     else:
       # two airing dates.
       try:
