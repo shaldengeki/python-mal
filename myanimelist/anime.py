@@ -16,7 +16,7 @@ class MalformedAnimePageError(Error):
     if isinstance(html, unicode):
       self.html = html
     else:
-      self.html = unicode(html)
+      self.html = str(html).decode('utf-8')
   def __str__(self):
     return "\n".join([
       super(MalformedAnimePageError, self).__str__(),
