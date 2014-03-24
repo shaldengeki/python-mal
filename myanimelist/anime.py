@@ -240,7 +240,7 @@ class Anime(Base):
         related_type = None
         while True:
           if not curr_elt:
-            raise MalformedAnimePageError(self, html, message="Prematurely reached end of related anime listing")
+            raise MalformedAnimePageError(self, related_elt, message="Prematurely reached end of related anime listing")
           if isinstance(curr_elt, bs4.NavigableString):
             type_match = re.match('(?P<type>[a-zA-Z\ \-]+):', curr_elt)
             if type_match:
