@@ -321,7 +321,7 @@ class Anime(Base):
     return self
 
   def load_stats(self):
-        """
+    """
       Fetches the MAL anime page and sets the current anime's attributes.
     """
     anime_page = self.session.session.get('http://myanimelist.net/anime/' + str(self.id) + '/stats').content
