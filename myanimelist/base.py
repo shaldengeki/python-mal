@@ -1,6 +1,8 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
+import functools
+
 class Error(Exception):
   def __init__(self, message=None):
     super(Error, self).__init__()
@@ -8,16 +10,19 @@ class Error(Exception):
   def __str__(self):
     return unicode(self.message) if self.message is not None else u""
 
-def loadable(func):
+def loadable(func_name):
   '''
     Decorator for getters that require a load() upon first access.
   '''
-  cached_name = '_' + func.__name__
-  def _decorator(self, *args, **kwargs):
-    if getattr(self, cached_name) is None:
-      self.load()
-    return func(self, *args, **kwargs)
-  return _decorator
+  def inner(func):
+    cached_name = '_' + func.__name__
+    @functools.wraps(func)
+    def _decorator(self, *args, **kwargs):
+      if getattr(self, cached_name) is None:
+        getattr(self, func_name)(self)
+      return func(self, *args, **kwargs)
+    return _decorator
+  return inner
 
 class Base(object):
   '''

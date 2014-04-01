@@ -87,10 +87,12 @@ class Anime(Base):
     self._tags = None
     self._synopsis = None
     self._related = None
+    self._score_stats = None
+    self._status_stats = None
 
-  def parse(self, html):
+  def parse_sidebar(self, html):
     """
-      Given a MAL anime page's HTML, returns a dict with this anime's attributes.
+      Given a MAL anime page's HTML, returns a dict with this anime's attributes found on the sidebar.
     """
     anime_info = {}
     anime_page = bs4.BeautifulSoup(html)
@@ -222,6 +224,14 @@ class Anime(Base):
     tags_header = anime_page.find('h2', text=u'Popular Tags')
     tags_tag = tags_header.find_next_sibling('span')
     anime_info['tags'] = tags_tag.text.strip().split(' ')
+    return anime_info    
+
+  def parse(self, html):
+    """
+      Given a MAL anime page's HTML, returns a dict with this anime's attributes.
+    """
+    anime_info = self.parse_sidebar(html)
+    anime_page = bs4.BeautifulSoup(html)
 
     synopsis_elt = anime_page.find('h2', text=u'Synopsis').parent
     utilities.extract_tags(synopsis_elt.find_all('h2'))
@@ -267,6 +277,41 @@ class Anime(Base):
       anime_info['related'] = None
     return anime_info
 
+  def parse_stats(self, html):
+    """
+      Given a MAL anime stats page's HTML, returns a dict with this anime's attributes.
+    """
+    anime_info = self.parse_sidebar(html)
+
+    status_stats = {}
+
+    watching_elt = soup.find('span', {'class': 'dark_text'}, text="Watching:").nextSibling
+    status_stats['watching'] = int(watching_elt.strip().replace(',', ''))
+
+    completed_elt = soup.find('span', {'class': 'dark_text'}, text="Completed:").nextSibling
+    status_stats['completed'] = int(completed_elt.strip().replace(',', ''))
+
+    on_hold_elt = soup.find('span', {'class': 'dark_text'}, text="On-Hold:").nextSibling
+    status_stats['on_hold'] = int(on_hold_elt.strip().replace(',', ''))
+
+    dropped_elt = soup.find('span', {'class': 'dark_text'}, text="Dropped:").nextSibling
+    status_stats['dropped'] = int(dropped_elt.strip().replace(',', ''))
+
+    plan_to_watch_elt = soup.find('span', {'class': 'dark_text'}, text="Plan to Watch:").nextSibling
+    status_stats['plan_to_watch'] = int(plan_to_watch_elt.strip().replace(',', ''))
+
+    anime_info['status_stats'] = status_stats
+
+    score_stats_header = soup.find('h2', text='Score Stats')
+    score_stats_table = score_stats_header.find_next_sibling('table')
+    if score_stats_table:
+      score_stats = {}
+      score_rows = score_stats_table.find_all('div', {'class': 'spaceit_pad'})
+      for i in xrange(10):
+        score_stats[10-i] = int(score_rows[i].find('small').text.replace('(', '').replace(' votes)', ''))
+      anime_info['score_stats'] = score_stats
+    return anime_info
+
   def load(self):
     """
       Fetches the MAL anime page and sets the current anime's attributes.
@@ -275,97 +320,115 @@ class Anime(Base):
     self.set(self.parse(anime_page))
     return self
 
+  def load_stats(self):
+        """
+      Fetches the MAL anime page and sets the current anime's attributes.
+    """
+    anime_page = self.session.session.get('http://myanimelist.net/anime/' + str(self.id) + '/stats').content
+    self.set(self.parse_stats(anime_page))
+    return self
+
   @property
-  @loadable
+  @loadable('load')
   def title(self):
     return self._title
 
   @property
-  @loadable
+  @loadable('load')
   def picture(self):
     return self._picture
 
   @property
-  @loadable
+  @loadable('load')
   def alternative_titles(self):
     return self._alternative_titles
 
   @property
-  @loadable
+  @loadable('load')
   def type(self):
     return self._type
 
   @property
-  @loadable
+  @loadable('load')
   def episodes(self):
     return self._episodes
 
   @property
-  @loadable
+  @loadable('load')
   def status(self):
     return self._status
 
   @property
-  @loadable
+  @loadable('load')
   def aired(self):
     return self._aired
 
   @property
-  @loadable
+  @loadable('load')
   def producers(self):
     return self._producers
 
   @property
-  @loadable
+  @loadable('load')
   def genres(self):
     return self._genres
 
   @property
-  @loadable
+  @loadable('load')
   def duration(self):
     return self._duration
 
   @property
-  @loadable
+  @loadable('load')
   def rating(self):
     return self._rating
 
   @property
-  @loadable
+  @loadable('load')
   def weighted_score(self):
     return self._weighted_score
 
   @property
-  @loadable
+  @loadable('load')
   def rank(self):
     return self._rank
 
   @property
-  @loadable
+  @loadable('load')
   def popularity(self):
     return self._popularity
 
   @property
-  @loadable
+  @loadable('load')
   def members(self):
     return self._members
 
   @property
-  @loadable
+  @loadable('load')
   def favorites(self):
     return self._favorites
 
   @property
-  @loadable
+  @loadable('load')
   def tags(self):
     return self._tags
   
   @property
-  @loadable
+  @loadable('load')
   def synopsis(self):
     return self._synopsis
 
   @property
-  @loadable
+  @loadable('load')
   def related(self):
     return self._related
+
+  @property
+  @loadable('load_stats')
+  def status_stats(self):
+    return self._status_stats
+
+  @property
+  @loadable('load_stats')
+  def score_stats(self):
+    return self._score_stats
