@@ -19,7 +19,7 @@ def loadable(func_name):
     @functools.wraps(func)
     def _decorator(self, *args, **kwargs):
       if getattr(self, cached_name) is None:
-        getattr(self, func_name)(self)
+        getattr(self, func_name)()
       return func(self, *args, **kwargs)
     return _decorator
   return inner

@@ -282,33 +282,35 @@ class Anime(Base):
       Given a MAL anime stats page's HTML, returns a dict with this anime's attributes.
     """
     anime_info = self.parse_sidebar(html)
+    anime_page = bs4.BeautifulSoup(html)
 
     status_stats = {}
 
-    watching_elt = soup.find('span', {'class': 'dark_text'}, text="Watching:").nextSibling
+    watching_elt = anime_page.find('span', {'class': 'dark_text'}, text="Watching:").nextSibling
     status_stats['watching'] = int(watching_elt.strip().replace(',', ''))
 
-    completed_elt = soup.find('span', {'class': 'dark_text'}, text="Completed:").nextSibling
+    completed_elt = anime_page.find('span', {'class': 'dark_text'}, text="Completed:").nextSibling
     status_stats['completed'] = int(completed_elt.strip().replace(',', ''))
 
-    on_hold_elt = soup.find('span', {'class': 'dark_text'}, text="On-Hold:").nextSibling
+    on_hold_elt = anime_page.find('span', {'class': 'dark_text'}, text="On-Hold:").nextSibling
     status_stats['on_hold'] = int(on_hold_elt.strip().replace(',', ''))
 
-    dropped_elt = soup.find('span', {'class': 'dark_text'}, text="Dropped:").nextSibling
+    dropped_elt = anime_page.find('span', {'class': 'dark_text'}, text="Dropped:").nextSibling
     status_stats['dropped'] = int(dropped_elt.strip().replace(',', ''))
 
-    plan_to_watch_elt = soup.find('span', {'class': 'dark_text'}, text="Plan to Watch:").nextSibling
+    plan_to_watch_elt = anime_page.find('span', {'class': 'dark_text'}, text="Plan to Watch:").nextSibling
     status_stats['plan_to_watch'] = int(plan_to_watch_elt.strip().replace(',', ''))
 
     anime_info['status_stats'] = status_stats
 
-    score_stats_header = soup.find('h2', text='Score Stats')
+    score_stats_header = anime_page.find('h2', text='Score Stats')
     score_stats_table = score_stats_header.find_next_sibling('table')
     if score_stats_table:
       score_stats = {}
-      score_rows = score_stats_table.find_all('div', {'class': 'spaceit_pad'})
-      for i in xrange(10):
-        score_stats[10-i] = int(score_rows[i].find('small').text.replace('(', '').replace(' votes)', ''))
+      score_rows = score_stats_table.find_all('tr')
+      for i in xrange(len(score_rows)):
+        score_value = int(score_rows[i].find('td').text)
+        score_stats[score_value] = int(score_rows[i].find('small').text.replace('(', '').replace(' votes)', ''))
       anime_info['score_stats'] = score_stats
     return anime_info
 
@@ -324,7 +326,7 @@ class Anime(Base):
     """
       Fetches the MAL anime page and sets the current anime's attributes.
     """
-    anime_page = self.session.session.get('http://myanimelist.net/anime/' + str(self.id) + '/stats').content
+    anime_page = self.session.session.get('http://myanimelist.net/anime/' + str(self.id) + '/' + self.title.encode('utf-8') + '/stats').content
     self.set(self.parse_stats(anime_page))
     return self
 
