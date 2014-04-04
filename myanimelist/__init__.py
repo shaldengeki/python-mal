@@ -1,0 +1,1 @@
+from myanimelist import *
