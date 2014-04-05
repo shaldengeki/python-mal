@@ -243,6 +243,8 @@ class Anime(Base):
       utilities.extract_tags(related_elt.find_all('h2'))
       related = {}
       for link in related_elt.find_all('a'):
+        if not re.match(r'http://myanimelist.net/(anime|manga)', link.get('href')):
+          break
         curr_elt = link.previous_sibling
         if curr_elt is None:
           # we've reached the end of the list.
