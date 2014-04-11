@@ -312,8 +312,8 @@ class Anime(Base):
     anime_info['status_stats'] = status_stats
 
     score_stats_header = anime_page.find('h2', text='Score Stats')
-    score_stats_table = score_stats_header.find_next_sibling('table')
-    if score_stats_table:
+    if score_stats_header:
+      score_stats_table = score_stats_header.find_next_sibling('table')
       score_stats = {}
       score_rows = score_stats_table.find_all('tr')
       for i in xrange(len(score_rows)):
