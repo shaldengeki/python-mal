@@ -287,60 +287,55 @@ class Anime(Base):
     anime_info = self.parse_sidebar(html)
     anime_page = bs4.BeautifulSoup(html)
 
-    status_stats = {}
-
+    status_stats = {
+      'watching': 0,
+      'completed': 0,
+      'on_hold': 0,
+      'dropped': 0,
+      'plan_to_watch': 0
+    }
     watching_elt = anime_page.find('span', {'class': 'dark_text'}, text="Watching:")
     if watching_elt:
       status_stats['watching'] = int(watching_elt.nextSibling.strip().replace(',', ''))
-    else:
-      status_stats['watching'] = 0
 
     completed_elt = anime_page.find('span', {'class': 'dark_text'}, text="Completed:")
     if completed_elt:
       status_stats['completed'] = int(completed_elt.nextSibling.strip().replace(',', ''))
-    else:
-      status_stats['completed'] = 0
 
     on_hold_elt = anime_page.find('span', {'class': 'dark_text'}, text="On-Hold:")
     if on_hold_elt:
       status_stats['on_hold'] = int(on_hold_elt.nextSibling.strip().replace(',', ''))
-    else:
-      status_stats['on_hold'] = 0
 
     dropped_elt = anime_page.find('span', {'class': 'dark_text'}, text="Dropped:")
     if dropped_elt:
       status_stats['dropped'] = int(dropped_elt.nextSibling.strip().replace(',', ''))
-    else:
-      status_stats['dropped'] = 0
 
     plan_to_watch_elt = anime_page.find('span', {'class': 'dark_text'}, text="Plan to Watch:")
     if plan_to_watch_elt:
       status_stats['plan_to_watch'] = int(plan_to_watch_elt.nextSibling.strip().replace(',', ''))
-    else:
-      status_stats['plan_to_watch'] = 0
     anime_info['status_stats'] = status_stats
 
     score_stats_header = anime_page.find('h2', text='Score Stats')
+    score_stats = {
+      1: 0,
+      2: 0,
+      3: 0,
+      4: 0,
+      5: 0,
+      6: 0,
+      7: 0,
+      8: 0,
+      9: 0,
+      10: 0
+    }
     if score_stats_header:
       score_stats_table = score_stats_header.find_next_sibling('table')
-      score_stats = {}
-      score_rows = score_stats_table.find_all('tr')
-      for i in xrange(len(score_rows)):
-        score_value = int(score_rows[i].find('td').text)
-        score_stats[score_value] = int(score_rows[i].find('small').text.replace('(', '').replace(' votes)', ''))
-    else:
-      score_stats = {
-        1: 0,
-        2: 0,
-        3: 0,
-        4: 0,
-        5: 0,
-        6: 0,
-        7: 0,
-        8: 0,
-        9: 0,
-        10: 0
-      }
+      if score_stats_table:
+        score_stats = {}
+        score_rows = score_stats_table.find_all('tr')
+        for i in xrange(len(score_rows)):
+          score_value = int(score_rows[i].find('td').text)
+          score_stats[score_value] = int(score_rows[i].find('small').text.replace('(', '').replace(' votes)', ''))
     anime_info['score_stats'] = score_stats
 
     return anime_info
