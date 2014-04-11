@@ -10,7 +10,7 @@ config = {
   'url': 'https://github.com/shaldengeki/python-mal', 
   'download_url': 'DOWNLOAD_URL', 
   'author_email': 'shaldengeki@gmail.com', 
-  'version': '0.1.0', 
+  'version': '0.1.1', 
   'install_requires': ['nose', 'beautifulsoup4', 'requests', 'pytz'], 
   'packages': ['myanimelist'], 
   'scripts': []

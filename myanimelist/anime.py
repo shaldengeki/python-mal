@@ -243,7 +243,8 @@ class Anime(Base):
       utilities.extract_tags(related_elt.find_all('h2'))
       related = {}
       for link in related_elt.find_all('a'):
-        if not re.match(r'http://myanimelist.net/(anime|manga)', link.get('href')):
+        href = link.get('href').replace('http://myanimelist.net', '')
+        if not re.match(r'/(anime|manga)', href):
           break
         curr_elt = link.previous_sibling
         if curr_elt is None:
@@ -260,10 +261,10 @@ class Anime(Base):
               break
           curr_elt = curr_elt.previous_sibling
         # parse link: may be manga or anime.
-        href_parts = link.get('href').split('/')
+        href_parts = href.split('/')
         title = link.text
-        obj_id = int(href_parts[4])
-        non_title_parts = href_parts[:5]
+        obj_id = int(href_parts[2])
+        non_title_parts = href_parts[:3]
         if 'manga' in non_title_parts:
           new_obj = self.session.manga(obj_id).set({'title': title})
         elif 'anime' in non_title_parts:
@@ -288,20 +289,25 @@ class Anime(Base):
 
     status_stats = {}
 
-    watching_elt = anime_page.find('span', {'class': 'dark_text'}, text="Watching:").nextSibling
-    status_stats['watching'] = int(watching_elt.strip().replace(',', ''))
+    watching_elt = anime_page.find('span', {'class': 'dark_text'}, text="Watching:")
+    if watching_elt:
+      status_stats['watching'] = int(watching_elt.nextSibling.strip().replace(',', ''))
 
-    completed_elt = anime_page.find('span', {'class': 'dark_text'}, text="Completed:").nextSibling
-    status_stats['completed'] = int(completed_elt.strip().replace(',', ''))
+    completed_elt = anime_page.find('span', {'class': 'dark_text'}, text="Completed:")
+    if completed_elt:
+      status_stats['completed'] = int(completed_elt.nextSibling.strip().replace(',', ''))
 
-    on_hold_elt = anime_page.find('span', {'class': 'dark_text'}, text="On-Hold:").nextSibling
-    status_stats['on_hold'] = int(on_hold_elt.strip().replace(',', ''))
+    on_hold_elt = anime_page.find('span', {'class': 'dark_text'}, text="On-Hold:")
+    if on_hold_elt:
+      status_stats['on_hold'] = int(on_hold_elt.nextSibling.strip().replace(',', ''))
 
-    dropped_elt = anime_page.find('span', {'class': 'dark_text'}, text="Dropped:").nextSibling
-    status_stats['dropped'] = int(dropped_elt.strip().replace(',', ''))
+    dropped_elt = anime_page.find('span', {'class': 'dark_text'}, text="Dropped:")
+    if dropped_elt:
+      status_stats['dropped'] = int(dropped_elt.nextSibling.strip().replace(',', ''))
 
-    plan_to_watch_elt = anime_page.find('span', {'class': 'dark_text'}, text="Plan to Watch:").nextSibling
-    status_stats['plan_to_watch'] = int(plan_to_watch_elt.strip().replace(',', ''))
+    plan_to_watch_elt = anime_page.find('span', {'class': 'dark_text'}, text="Plan to Watch:")
+    if plan_to_watch_elt:
+      status_stats['plan_to_watch'] = int(plan_to_watch_elt.nextSibling.strip().replace(',', ''))
 
     anime_info['status_stats'] = status_stats
 
