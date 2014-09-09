@@ -416,8 +416,7 @@ class Anime(Base):
     characters_page = self.session.session.get('http://myanimelist.net/anime/' + str(self.id) + '/' + self.title.encode('utf-8') + '/characters').content
     self.set(self.parse_characters(characters_page))
     return self
-
-
+    
   def load_stats(self):
     """
       Fetches the MAL anime stats page and sets the current anime's attributes.
