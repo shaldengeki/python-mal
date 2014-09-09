@@ -10,9 +10,9 @@ import utilities
 from base import Base, Error, loadable
 
 class MalformedAnimePageError(Error):
-  def __init__(self, anime, html, message=None):
+  def __init__(self, anime_id, html, message=None):
     super(MalformedAnimePageError, self).__init__(message=message)
-    self.anime = anime
+    self.anime_id = int(anime_id)
     if isinstance(html, unicode):
       self.html = html
     else:
@@ -20,18 +20,18 @@ class MalformedAnimePageError(Error):
   def __str__(self):
     return "\n".join([
       super(MalformedAnimePageError, self).__str__(),
-      "Anime ID: " + unicode(self.anime.id),
+      "Anime ID: " + unicode(self.anime_id),
       "HTML: " + self.html
     ]).encode('utf-8')
 
 class InvalidAnimeError(Error):
-  def __init__(self, anime, message=None):
+  def __init__(self, anime_id, message=None):
     super(InvalidAnimeError, self).__init__(message=message)
-    self.anime = anime
+    self.anime_id = anime_id
   def __str__(self):
     return "\n".join([
       super(InvalidAnimeError, self).__str__(),
-      "Anime ID: " + unicode(self.anime.id)
+      "Anime ID: " + unicode(self.anime_id)
     ])
 
 def parse_date(text):
@@ -55,6 +55,19 @@ def parse_date(text):
   return aired_date
 
 class Anime(Base):
+  @staticmethod
+  def newest(session):
+    '''
+      Returns the newest anime on MAL.
+    '''
+    p = session.session.get('http://myanimelist.net/anime.php?o=9&c[]=a&c[]=d&cv=2&w=1').text
+    soup = bs4.BeautifulSoup(p)
+    latest_entry = soup.find("div", {"class": "hoverinfo"})
+    if not latest_entry:
+      raise MalformedAnimePageError(0, p, "No anime entries found on recently-added page")
+    latest_id = int(latest_entry['rel'][1:])
+    return Anime(session, latest_id)
+
   def __repr__(self):
     return u"<Anime ID: " + unicode(self.id) + u">"
   def __hash__(self):
@@ -67,7 +80,7 @@ class Anime(Base):
     super(Anime, self).__init__(session)
     self.id = anime_id
     if not isinstance(self.id, int) or int(self.id) < 1:
-      raise InvalidAnimeError(self)
+      raise InvalidAnimeError(self.id)
     self._title = None
     self._picture = None
     self._alternative_titles = None
@@ -101,9 +114,9 @@ class Anime(Base):
       # if MAL says the series doesn't exist, raise an InvalidAnimeError.
       error_tag = anime_page.find('h1', text=u'Invalid Request')
       if error_tag:
-        raise InvalidAnimeError(self)
+        raise InvalidAnimeError(self.id)
       # otherwise, raise a MalformedAnimePageError.
-      raise MalformedAnimePageError(self, html, message="Could not find title div")
+      raise MalformedAnimePageError(self.id, html, message="Could not find title div")
 
     utilities.extract_tags(title_tag.find_all())
     anime_info['title'] = title_tag.text.strip()
@@ -151,18 +164,18 @@ class Anime(Base):
       try:
         aired_date = parse_date(aired_parts[0])
       except ValueError:
-        raise MalformedAnimePageError(self, aired_parts[0], message="Could not parse single air date")
+        raise MalformedAnimePageError(self.id, aired_parts[0], message="Could not parse single air date")
       anime_info['aired'] = (aired_date,)
     else:
       # two airing dates.
       try:
         air_start = parse_date(aired_parts[0])
       except ValueError:
-        raise MalformedAnimePageError(self, aired_parts[0], message="Could not parse first of two air dates")
+        raise MalformedAnimePageError(self.id, aired_parts[0], message="Could not parse first of two air dates")
       try:
         air_end = parse_date(aired_parts[1])
       except ValueError:
-        raise MalformedAnimePageError(self, aired_parts[1], message="Could not parse second of two air dates")
+        raise MalformedAnimePageError(self.id, aired_parts[1], message="Could not parse second of two air dates")
       anime_info['aired'] = (air_start, air_end)
 
     producers_tag = aired_tag.find_next_sibling('div')
@@ -253,7 +266,7 @@ class Anime(Base):
         related_type = None
         while True:
           if not curr_elt:
-            raise MalformedAnimePageError(self, related_elt, message="Prematurely reached end of related anime listing")
+            raise MalformedAnimePageError(self.id, related_elt, message="Prematurely reached end of related anime listing")
           if isinstance(curr_elt, bs4.NavigableString):
             type_match = re.match('(?P<type>[a-zA-Z\ \-]+):', curr_elt)
             if type_match:
@@ -274,7 +287,7 @@ class Anime(Base):
         elif 'anime' in non_title_parts:
           new_obj = self.session.anime(obj_id).set({'title': title})
         else:
-          raise MalformedAnimePageError(self, link, message="Related thing is of unknown type")
+          raise MalformedAnimePageError(self.id, link, message="Related thing is of unknown type")
         if related_type not in related:
           related[related_type] = [new_obj]
         else:
