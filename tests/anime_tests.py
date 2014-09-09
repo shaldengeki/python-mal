@@ -10,22 +10,31 @@ import myanimelist.anime
 class testAnimeClass(object):
   @classmethod
   def setUpClass(self):
-    with open('credentials.txt', 'r') as cred_file:
-      line = cred_file.read().strip().split('\n')[0]
-      self.username, self.password = line.strip().split(',')
-
     self.session = myanimelist.session.Session()
     self.bebop = self.session.anime(1)
+    self.hex = self.session.character(94717)
+    self.hex_va = self.session.person(5766)
     self.bebop_side_story = self.session.anime(5)
     self.spicy_wolf = self.session.anime(2966)
+    self.holo = self.session.character(7373)
+    self.holo_va = self.session.person(70)
     self.spicy_wolf_sequel = self.session.anime(6007)
     self.space_dandy = self.session.anime(20057)
+    self.toaster = self.session.character(110427)
+    self.toaster_va = self.session.person(611)
     self.totoro = self.session.anime(523)
+    self.satsuki = self.session.character(267)
+    self.satsuki_va = self.session.person(1104)
     self.invalid_anime = self.session.anime(457384754)
+    self.latest_anime = myanimelist.anime.Anime.newest(self.session)
 
   @raises(TypeError)
   def testNoIDInvalidAnime(self):
     self.session.anime()
+
+  @raises(TypeError)
+  def testNoSessionInvalidLatestAnime(self):
+    myanimelist.anime.Anime.newest()
 
   @raises(myanimelist.anime.InvalidAnimeError)
   def testNegativeInvalidAnime(self):
@@ -38,6 +47,10 @@ class testAnimeClass(object):
   @raises(myanimelist.anime.InvalidAnimeError)
   def testNonExistentAnime(self):
     self.invalid_anime.load()
+
+  def testLatestAnime(self):
+    assert isinstance(self.latest_anime, myanimelist.anime.Anime)
+    assert self.latest_anime.id > 20000
 
   def testAnimeValid(self):
     assert isinstance(self.bebop, myanimelist.anime.Anime)
@@ -134,3 +147,33 @@ class testAnimeClass(object):
   def testRelated(self):
     assert isinstance(self.spicy_wolf.related, dict) and 'Sequel' in self.spicy_wolf.related and self.spicy_wolf_sequel in self.spicy_wolf.related['Sequel']
     assert isinstance(self.bebop.related, dict) and 'Side story' in self.bebop.related and self.bebop_side_story in self.bebop.related['Side story']
+
+  def testCharacters(self):
+    assert isinstance(self.spicy_wolf.characters, dict) and len(self.spicy_wolf.characters) > 0
+    assert self.holo in self.spicy_wolf.characters and self.spicy_wolf.characters[self.holo]['role'] == 'Main' and self.holo_va in self.spicy_wolf.characters[self.holo]['voice_actors']
+    assert isinstance(self.bebop.characters, dict) and len(self.bebop.characters) > 0
+    assert self.hex in self.bebop.characters and self.bebop.characters[self.hex]['role'] == 'Supporting' and self.hex_va in self.bebop.characters[self.hex]['voice_actors']
+    assert isinstance(self.space_dandy.characters, dict) and len(self.space_dandy.characters) > 0
+    assert self.toaster in self.space_dandy.characters and self.space_dandy.characters[self.toaster]['role'] == 'Supporting' and self.toaster_va in self.space_dandy.characters[self.toaster]['voice_actors']
+    assert isinstance(self.totoro.characters, dict) and len(self.totoro.characters) > 0
+    assert self.satsuki in self.totoro.characters and self.totoro.characters[self.satsuki]['role'] == 'Main' and self.satsuki_va in self.totoro.characters[self.satsuki]['voice_actors']
+
+  def testVoiceActors(self):
+    assert isinstance(self.spicy_wolf.voice_actors, dict) and len(self.spicy_wolf.voice_actors) > 0
+    assert self.holo_va in self.spicy_wolf.voice_actors and self.spicy_wolf.voice_actors[self.holo_va]['role'] == 'Main' and self.spicy_wolf.voice_actors[self.holo_va]['character'] == self.holo
+    assert isinstance(self.bebop.voice_actors, dict) and len(self.bebop.voice_actors) > 0
+    assert self.hex_va in self.bebop.voice_actors and self.bebop.voice_actors[self.hex_va]['role'] == 'Supporting' and self.bebop.voice_actors[self.hex_va]['character'] == self.hex
+    assert isinstance(self.space_dandy.voice_actors, dict) and len(self.space_dandy.voice_actors) > 0
+    assert self.toaster_va in self.space_dandy.voice_actors and self.space_dandy.voice_actors[self.toaster_va]['role'] == 'Supporting' and self.space_dandy.voice_actors[self.toaster_va]['character'] == self.toaster
+    assert isinstance(self.totoro.voice_actors, dict) and len(self.totoro.voice_actors) > 0
+    assert self.satsuki_va in self.totoro.voice_actors and self.totoro.voice_actors[self.satsuki_va]['role'] == 'Main' and self.totoro.voice_actors[self.satsuki_va]['character'] == self.satsuki
+
+  def testStaff(self):
+    assert isinstance(self.spicy_wolf.staff, dict) and len(self.spicy_wolf.staff) > 0
+    assert self.session.person(472) in self.spicy_wolf.staff and u'Producer' in self.spicy_wolf.staff[self.session.person(472)]
+    assert isinstance(self.bebop.staff, dict) and len(self.bebop.staff) > 0
+    assert self.session.person(12221) in self.bebop.staff and u'Inserted Song Performance' in self.bebop.staff[self.session.person(12221)]
+    assert isinstance(self.space_dandy.staff, dict) and len(self.space_dandy.staff) > 0
+    assert self.session.person(10127) in self.space_dandy.staff and all(x in self.space_dandy.staff[self.session.person(10127)] for x in [u'Theme Song Composition', u'Theme Song Lyrics', u'Theme Song Performance'])
+    assert isinstance(self.totoro.staff, dict) and len(self.totoro.staff) > 0
+    assert self.session.person(1870) in self.totoro.staff and all(x in self.totoro.staff[self.session.person(1870)] for x in [u'Director', u'Script', u'Storyboard'])

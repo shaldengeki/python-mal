@@ -4,6 +4,10 @@
 import requests
 import anime
 import manga
+import character
+import person
+import user
+import club
 from base import Error
 
 class UnauthorizedError(Error):
@@ -53,3 +57,11 @@ class Session(object):
     return anime.Anime(self, anime_id)
   def manga(self, manga_id):
     return manga.Manga(self, manga_id)
+  def character(self, character_id):
+    return character.Character(self, character_id)
+  def person(self, person_id):
+    return person.Person(self, person_id)
+  def user(self, id=None, username=None):
+    return user.User(self, id=id, username=username)
+  def club(self, club_id):
+    return club.Club(self, club_id)

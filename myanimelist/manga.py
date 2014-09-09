@@ -1,8 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-import datetime
-import pytz
 import bs4
 import re
 
@@ -28,22 +26,6 @@ class InvalidMangaError(Error):
       super(InvalidMangaError, self).__str__(),
       "Manga ID: " + unicode(self.manga_id)
     ])
-
-def parse_date(text):
-  """
-    Parses a MAL date on an manga page.
-    May raise ValueError if a malformed date is found.
-    If text is "Unknown" or "?" then returns None.
-    Otherwise, returns a datetime.date object.
-  """
-  if text == "Unknown" or text == "?":
-    return None
-  try:
-    aired_date = datetime.datetime.strptime(text, '%Y').date()
-  except ValueError:
-    # see if it's a date.
-    aired_date = datetime.datetime.strptime(text, '%b %d, %Y').date()
-  return aired_date
 
 class Manga(Base):
   def __repr__(self):

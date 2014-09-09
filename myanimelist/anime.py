@@ -1,8 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-import datetime
-import pytz
 import bs4
 import re
 
@@ -33,26 +31,6 @@ class InvalidAnimeError(Error):
       super(InvalidAnimeError, self).__str__(),
       "Anime ID: " + unicode(self.anime_id)
     ])
-
-def parse_date(text):
-  """
-    Parses a MAL date on an anime page.
-    May raise ValueError if a malformed date is found.
-    If text is "Unknown" or "?" or "Not available" then returns None.
-    Otherwise, returns a datetime.date object.
-  """
-  if text == u"Unknown" or text == u"?" or text == u"Not available":
-    return None
-  try:
-    aired_date = datetime.datetime.strptime(text, '%Y').date()
-  except ValueError:
-    # see if it's a date.
-    try:
-      aired_date = datetime.datetime.strptime(text, '%b %d, %Y').date()
-    except ValueError:
-      # see if it's a month/year pairing.
-      aired_date = datetime.datetime.strptime(text, '%b %Y').date()
-  return aired_date
 
 class Anime(Base):
   @staticmethod
@@ -102,6 +80,9 @@ class Anime(Base):
     self._related = None
     self._score_stats = None
     self._status_stats = None
+    self._characters = None
+    self._voice_actors = None
+    self._staff = None
 
   def parse_sidebar(self, html):
     """
@@ -162,18 +143,18 @@ class Anime(Base):
     if len(aired_parts) == 1:
       # this aired once.
       try:
-        aired_date = parse_date(aired_parts[0])
+        aired_date = utilities.parse_profile_date(aired_parts[0])
       except ValueError:
         raise MalformedAnimePageError(self.id, aired_parts[0], message="Could not parse single air date")
       anime_info['aired'] = (aired_date,)
     else:
       # two airing dates.
       try:
-        air_start = parse_date(aired_parts[0])
+        air_start = utilities.parse_profile_date(aired_parts[0])
       except ValueError:
         raise MalformedAnimePageError(self.id, aired_parts[0], message="Could not parse first of two air dates")
       try:
-        air_end = parse_date(aired_parts[1])
+        air_end = utilities.parse_profile_date(aired_parts[1])
       except ValueError:
         raise MalformedAnimePageError(self.id, aired_parts[1], message="Could not parse second of two air dates")
       anime_info['aired'] = (air_start, air_end)
@@ -297,6 +278,69 @@ class Anime(Base):
       anime_info['related'] = None
     return anime_info
 
+  def parse_characters(self, html):
+    """
+      Given a MAL anime's character page HTML, return a dict with this anime's character/staff/va attributes.
+    """
+    anime_info = self.parse_sidebar(html)
+    character_page = bs4.BeautifulSoup(html)
+    character_title = filter(lambda x: 'Characters & Voice Actors' in x.text, character_page.find_all('h2'))
+    anime_info['characters'] = {}
+    anime_info['voice_actors'] = {}
+    if character_title:
+      character_title = character_title[0]
+      curr_elt = character_title.nextSibling
+      while True:
+        if curr_elt.name != u'table':
+          break
+        curr_row = curr_elt.find('tr')
+        # character in second col, VAs in third.
+        (_, character_col, va_col) = curr_row.find_all('td', recursive=False)
+
+        character_link = character_col.find('a')
+        character_name = ' '.join(reversed(character_link.text.split(', ')))
+        link_parts = character_link.get('href').split('/')
+        # of the form /character/7373/Holo
+        character = self.session.character(int(link_parts[2])).set({'name': character_name})
+        role = character_col.find('small').text
+        character_entry = {'role': role, 'voice_actors': {}}
+
+        va_table = va_col.find('table')
+        if va_table:
+          for row in va_table.find_all('tr'):
+            va_info_cols = row.find_all('td')
+            if not va_info_cols:
+              # don't ask me why MAL has an extra blank table row i don't know!!!
+              continue
+            va_info_col = va_info_cols[0]
+            va_link = va_info_col.find('a')
+            va_name = ' '.join(reversed(va_link.text.split(', ')))
+            link_parts = va_link.get('href').split('/')
+            # of the form /people/70/Ami_Koshimizu
+            person = self.session.person(int(link_parts[2])).set({'name': va_name})
+            language = va_info_col.find('small').text
+            anime_info['voice_actors'][person] = {'role': role, 'character': character, 'language': language}
+            character_entry['voice_actors'][person] = language
+        anime_info['characters'][character] = character_entry
+        curr_elt = curr_elt.nextSibling
+
+    staff_title = filter(lambda x: 'Staff' in x.text, character_page.find_all('h2'))
+    anime_info['staff'] = {}
+    if staff_title:
+      staff_title = staff_title[0]
+      staff_table = staff_title.nextSibling.nextSibling
+      for row in staff_table.find_all('tr'):
+        # staff info in second col.
+        info = row.find_all('td')[1]
+        staff_link = info.find('a')
+        staff_name = ' '.join(reversed(staff_link.text.split(', ')))
+        link_parts = staff_link.get('href').split('/')
+        # of the form /people/1870/Miyazaki_Hayao
+        person = self.session.person(int(link_parts[2])).set({'name': staff_name})
+        # staff role(s).
+        anime_info['staff'][person] = set(info.find('small').text.split(', '))
+    return anime_info
+
   def parse_stats(self, html):
     """
       Given a MAL anime stats page's HTML, returns a dict with this anime's attributes.
@@ -365,12 +409,21 @@ class Anime(Base):
     self.set(self.parse(anime_page))
     return self
 
+  def load_characters(self):
+    """
+      Fetches the MAL anime's characters page and sets the current anime's attributes.
+    """
+    characters_page = self.session.session.get('http://myanimelist.net/anime/' + str(self.id) + '/' + self.title.encode('utf-8') + '/characters').content
+    self.set(self.parse_characters(characters_page))
+    return self
+
+
   def load_stats(self):
     """
-      Fetches the MAL anime page and sets the current anime's attributes.
+      Fetches the MAL anime stats page and sets the current anime's attributes.
     """
-    anime_page = self.session.session.get('http://myanimelist.net/anime/' + str(self.id) + '/' + self.title.encode('utf-8') + '/stats').content
-    self.set(self.parse_stats(anime_page))
+    stats_page = self.session.session.get('http://myanimelist.net/anime/' + str(self.id) + '/' + self.title.encode('utf-8') + '/stats').content
+    self.set(self.parse_stats(stats_page))
     return self
 
   @property
@@ -467,6 +520,21 @@ class Anime(Base):
   @loadable('load')
   def related(self):
     return self._related
+
+  @property
+  @loadable('load_characters')
+  def characters(self):
+    return self._characters
+
+  @property
+  @loadable('load_characters')
+  def voice_actors(self):
+    return self._voice_actors
+
+  @property
+  @loadable('load_characters')
+  def staff(self):
+    return self._staff  
 
   @property
   @loadable('load_stats')
