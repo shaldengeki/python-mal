@@ -263,6 +263,10 @@ class Anime(Base):
         # parse link: may be manga or anime.
         href_parts = href.split('/')
         title = link.text
+
+        # sometimes links on MAL are broken, of the form /anime//
+        if href_parts[2] == '':
+          continue
         obj_id = int(href_parts[2])
         non_title_parts = href_parts[:3]
         if 'manga' in non_title_parts:

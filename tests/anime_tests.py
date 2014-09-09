@@ -14,7 +14,7 @@ class testAnimeClass(object):
       line = cred_file.read().strip().split('\n')[0]
       self.username, self.password = line.strip().split(',')
 
-    self.session = myanimelist.session.Session(self.username, self.password).login()
+    self.session = myanimelist.session.Session()
     self.bebop = self.session.anime(1)
     self.bebop_side_story = self.session.anime(5)
     self.spicy_wolf = self.session.anime(2966)

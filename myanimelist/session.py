@@ -16,10 +16,13 @@ class UnauthorizedError(Error):
     ])
 
 class Session(object):
-  def __init__(self, username, password):
+  def __init__(self, username=None, password=None):
     self.username = username
     self.password = password
-    self.session = None
+    self.session = requests.Session()
+    self.session.headers.update({
+      'User-Agent': 'iMAL-iOS'
+    })
   def logged_in(self):
     """
       Returns a boolean reflecting whether or not the current session is logged-in.
@@ -35,11 +38,7 @@ class Session(object):
   def login(self):
     # POSTS a login to mal.
     mal_headers = {
-      'Accept': 'image/gif, image/x-xbitmap, image/jpeg, image/pjpeg, */*',
-      'Content-Type': 'application/x-www-form-urlencoded',
-      'User-Agent': 'Mozilla/4.0 (compatible; ICS)',
       'Host': 'myanimelist.net',
-      'Pragma': 'no-cache'
     }
     mal_payload = {
       'username': self.username,
@@ -47,7 +46,6 @@ class Session(object):
       'cookie': 1,
       'sublogin': 'Login'
     }
-    self.session = requests.Session()
     self.session.headers.update(mal_headers)
     r = self.session.post('http://myanimelist.net/login.php', data=mal_payload)
     return self
