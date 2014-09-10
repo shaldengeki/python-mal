@@ -14,7 +14,7 @@ class testCharacterClass(object):
     self.session = myanimelist.session.Session()
     self.spike = self.session.character(1)
     self.ed = self.session.character(11)
-    self.maria = self.session.character(112693)    
+    self.maria = self.session.character(112693)
     self.invalid_character = self.session.character(457384754)
 
   @raises(TypeError)

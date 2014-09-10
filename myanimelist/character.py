@@ -229,7 +229,7 @@ class Character(Base):
       Fetches the MAL character favorites page and sets the current character's attributes.
     """
     print 'http://myanimelist.net/character/' + str(self.id) + '/favorites'
-    urlencoded_name = urllib.urlencode({'': self.name.encode('utf-8')})[1:]
+    urlencoded_name = urllib.urlencode({'': self.name.encode('utf-8').replace(' ', '_')})[1:].replace('%2F', '/')
     character = self.session.session.get('http://myanimelist.net/character/' + str(self.id) + '/' + urlencoded_name + '/favorites').text
     self.set(self.parse_favorites(character))
     return self
@@ -238,7 +238,7 @@ class Character(Base):
     """
       Fetches the MAL character pictures page and sets the current character's attributes.
     """
-    urlencoded_name = urllib.urlencode({'': self.name.encode('utf-8')})[1:]
+    urlencoded_name = urllib.urlencode({'': self.name.encode('utf-8').replace(' ', '_')})[1:].replace('%2F', '/')
     character = self.session.session.get('http://myanimelist.net/character/' + str(self.id) + '/' + urlencoded_name + '/pictures').text
     self.set(self.parse_pictures(character))
     return self
@@ -247,7 +247,7 @@ class Character(Base):
     """
       Fetches the MAL character clubs page and sets the current character's attributes.
     """
-    urlencoded_name = urllib.urlencode({'': self.name.encode('utf-8')})[1:]
+    urlencoded_name = urllib.urlencode({'': self.name.encode('utf-8').replace(' ', '_')})[1:].replace('%2F', '/')
     character = self.session.session.get('http://myanimelist.net/character/' + str(self.id) + '/' + urlencoded_name + '/clubs').text
     self.set(self.parse_clubs(character))
     return self
