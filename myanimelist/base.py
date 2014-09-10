@@ -28,8 +28,10 @@ class Base(object):
   '''
     Provides autoloading, auto-setting functionality for other MAL objects.
   '''
+  _id_attribute = "id"
   def __init__(self, session):
     self.session = session
+    self.suppress_exceptions = False
 
   def load(self):
     raise NotImplementedError("Subclasses must implement load()")
@@ -39,8 +41,14 @@ class Base(object):
     Sets attributes of this user object with keys found in dict.
     """
     for key in attr_dict:
-      if key == 'id':
-        self.id = attr_dict[key]
+      if key == self._id_attribute:
+        try:
+          setattr(self, self._id_attribute, attr_dict[key])
+        except:
+          print "Dict:"
+          print attr_dict
+          print "Key: " + key
+          raise
       else:
         setattr(self, "_" + key, attr_dict[key])
     return self
