@@ -128,7 +128,7 @@ class Character(Base):
 
     name_jpn_node = name_elt.find('small')
     if name_jpn_node:
-      character_info['name_jpn'] = name_jpn_node.text
+      character_info['name_jpn'] = name_jpn_node.text[1:-1]
     else:
       character_info['name_jpn'] = None
     name_elt.find('span').extract()
