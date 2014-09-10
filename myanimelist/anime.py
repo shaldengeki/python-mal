@@ -90,12 +90,14 @@ class Anime(Base):
     """
     anime_info = {}
     anime_page = bs4.BeautifulSoup(html)
+
+    # if MAL says the series doesn't exist, raise an InvalidAnimeError.
+    error_tag = anime_page.find('div', {'class': 'badresult'})
+    if error_tag:
+        raise InvalidAnimeError(self.id)
+
     title_tag = anime_page.find('div', {'id': 'contentWrapper'}).find('h1')
     if not title_tag.find('div'):
-      # if MAL says the series doesn't exist, raise an InvalidAnimeError.
-      error_tag = anime_page.find('h1', text=u'Invalid Request')
-      if error_tag:
-        raise InvalidAnimeError(self.id)
       # otherwise, raise a MalformedAnimePageError.
       raise MalformedAnimePageError(self.id, html, message="Could not find title div")
 
