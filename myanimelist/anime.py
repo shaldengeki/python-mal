@@ -3,6 +3,7 @@
 
 import bs4
 import re
+import urllib
 
 import utilities
 from base import Base, Error, loadable
@@ -408,7 +409,7 @@ class Anime(Base):
     """
       Fetches the MAL anime page and sets the current anime's attributes.
     """
-    anime_page = self.session.session.get('http://myanimelist.net/anime/' + str(self.id)).content
+    anime_page = self.session.session.get('http://myanimelist.net/anime/' + str(self.id)).text
     self.set(self.parse(anime_page))
     return self
 
@@ -416,7 +417,8 @@ class Anime(Base):
     """
       Fetches the MAL anime's characters page and sets the current anime's attributes.
     """
-    characters_page = self.session.session.get('http://myanimelist.net/anime/' + str(self.id) + '/' + self.title.encode('utf-8') + '/characters').content
+    urlencoded_title = urllib.urlencode({'': self.title.encode('utf-8')})[1:]
+    characters_page = self.session.session.get('http://myanimelist.net/anime/' + str(self.id) + '/' + urlencoded_title + '/characters').text
     self.set(self.parse_characters(characters_page))
     return self
     
@@ -424,7 +426,8 @@ class Anime(Base):
     """
       Fetches the MAL anime stats page and sets the current anime's attributes.
     """
-    stats_page = self.session.session.get('http://myanimelist.net/anime/' + str(self.id) + '/' + self.title.encode('utf-8') + '/stats').content
+    urlencoded_title = urllib.urlencode({'': self.title.encode('utf-8')})[1:]
+    stats_page = self.session.session.get('http://myanimelist.net/anime/' + str(self.id) + '/' + urlencoded_title + '/stats').text
     self.set(self.parse_stats(stats_page))
     return self
 

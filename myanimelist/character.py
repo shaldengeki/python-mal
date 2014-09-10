@@ -3,6 +3,7 @@
 
 import bs4
 import re
+import urllib
 
 import utilities
 from base import Base, Error, loadable
@@ -219,7 +220,7 @@ class Character(Base):
     """
       Fetches the MAL character page and sets the current character's attributes.
     """
-    character = self.session.session.get('http://myanimelist.net/character/' + str(self.id)).content
+    character = self.session.session.get('http://myanimelist.net/character/' + str(self.id)).text
     self.set(self.parse(character))
     return self
 
@@ -228,7 +229,8 @@ class Character(Base):
       Fetches the MAL character favorites page and sets the current character's attributes.
     """
     print 'http://myanimelist.net/character/' + str(self.id) + '/favorites'
-    character = self.session.session.get('http://myanimelist.net/character/' + str(self.id) + '/' + self.name.encode('utf-8') + '/favorites').content
+    urlencoded_name = urllib.urlencode({'': self.name.encode('utf-8')})[1:]
+    character = self.session.session.get('http://myanimelist.net/character/' + str(self.id) + '/' + urlencoded_name + '/favorites').text
     self.set(self.parse_favorites(character))
     return self
 
@@ -236,7 +238,8 @@ class Character(Base):
     """
       Fetches the MAL character pictures page and sets the current character's attributes.
     """
-    character = self.session.session.get('http://myanimelist.net/character/' + str(self.id) + '/' + self.name.encode('utf-8') + '/pictures').content
+    urlencoded_name = urllib.urlencode({'': self.name.encode('utf-8')})[1:]
+    character = self.session.session.get('http://myanimelist.net/character/' + str(self.id) + '/' + urlencoded_name + '/pictures').text
     self.set(self.parse_pictures(character))
     return self
 
@@ -244,7 +247,8 @@ class Character(Base):
     """
       Fetches the MAL character clubs page and sets the current character's attributes.
     """
-    character = self.session.session.get('http://myanimelist.net/character/' + str(self.id) + '/' + self.name.encode('utf-8') + '/clubs').content
+    urlencoded_name = urllib.urlencode({'': self.name.encode('utf-8')})[1:]
+    character = self.session.session.get('http://myanimelist.net/character/' + str(self.id) + '/' + urlencoded_name + '/clubs').text
     self.set(self.parse_clubs(character))
     return self
 
