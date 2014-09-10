@@ -31,12 +31,19 @@ def parse_profile_date(text):
     return None
   if text == u"Now":
     return datetime.datetime.now()
-  minutes_match = re.match(r'(?P<minutes>[0-9]+) minutes ago', text)
+
+  seconds_match = re.match(r'(?P<seconds>[0-9]+) second(s)? ago', text)
+  if seconds_match:
+    return datetime.datetime.now() - datetime.timedelta(seconds=int(seconds_match.group('seconds')))
+
+  minutes_match = re.match(r'(?P<minutes>[0-9]+) minute(s)? ago', text)
   if minutes_match:
     return datetime.datetime.now() - datetime.timedelta(minutes=int(minutes_match.group('minutes')))
+
   hours_match = re.match(r'(?P<hours>[0-9]+) hour(s)? ago', text)
   if hours_match:
     return datetime.datetime.now() - datetime.timedelta(hours=int(hours_match.group('hours')))
+
   today_match = re.match(r'Today, (?P<hour>[0-9]+):(?P<minute>[0-9]+) (?P<am>[APM]+)', text)
   if today_match:
     hour = int(today_match.group('hour'))
@@ -46,6 +53,7 @@ def parse_profile_date(text):
       hour += 12
     today = datetime.date.today()
     return datetime.datetime(year=today.year, month=today.month, day=today.day, hour=hour, minute=minute, second=0)
+
   yesterday_match = re.match(r'Yesterday, (?P<hour>[0-9]+):(?P<minute>[0-9]+) (?P<am>[APM]+)', text)
   if yesterday_match:
     hour = int(yesterday_match.group('hour'))
@@ -55,6 +63,7 @@ def parse_profile_date(text):
       hour += 12
     yesterday = datetime.date.today() - datetime.timedelta(days=1)
     return datetime.datetime(year=yesterday.year, month=yesterday.month, day=yesterday.day, hour=hour, minute=minute, second=0)
+
   try:
     return datetime.datetime.strptime(text, '%m-%d-%y, %I:%M %p')
   except ValueError:
