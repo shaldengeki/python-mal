@@ -314,13 +314,14 @@ class Anime(Base):
               continue
             va_info_col = va_info_cols[0]
             va_link = va_info_col.find('a')
-            va_name = ' '.join(reversed(va_link.text.split(', ')))
-            link_parts = va_link.get('href').split('/')
-            # of the form /people/70/Ami_Koshimizu
-            person = self.session.person(int(link_parts[2])).set({'name': va_name})
-            language = va_info_col.find('small').text
-            anime_info['voice_actors'][person] = {'role': role, 'character': character, 'language': language}
-            character_entry['voice_actors'][person] = language
+            if va_link:
+              va_name = ' '.join(reversed(va_link.text.split(', ')))
+              link_parts = va_link.get('href').split('/')
+              # of the form /people/70/Ami_Koshimizu
+              person = self.session.person(int(link_parts[2])).set({'name': va_name})
+              language = va_info_col.find('small').text
+              anime_info['voice_actors'][person] = {'role': role, 'character': character, 'language': language}
+              character_entry['voice_actors'][person] = language
         anime_info['characters'][character] = character_entry
         curr_elt = curr_elt.nextSibling
 
