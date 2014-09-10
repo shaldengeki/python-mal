@@ -27,6 +27,7 @@ class Session(object):
     self.session.headers.update({
       'User-Agent': 'iMAL-iOS'
     })
+    self.suppress_parse_exceptions = False
   def logged_in(self):
     """
       Returns a boolean reflecting whether or not the current session is logged-in.
@@ -61,7 +62,7 @@ class Session(object):
     return character.Character(self, character_id)
   def person(self, person_id):
     return person.Person(self, person_id)
-  def user(self, id=None, username=None):
-    return user.User(self, id=id, username=username)
+  def user(self, username):
+    return user.User(self, username)
   def club(self, club_id):
     return club.Club(self, club_id)
