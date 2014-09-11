@@ -8,7 +8,7 @@ Dependencies
 ============
 
 - python 2.7.*
-- BeautifulSoup
+- BeautifulSoup 4
 - pytz
 - requests
 - nose (only if you want to run tests, though!)
@@ -21,11 +21,10 @@ After cloning the repository, navigate to the directory and run `python setup.py
 Usage
 =====
 
-Pretty much everything on MAL requires authentication, so you'll want to do that first.
+The `myanimelist.session.Session` class handles requests to MAL, so you'll want to create one first:
 
     from myanimelist.session import Session
-    s = Session('mal-username', 'mal-password')
-    s.login()
+    s = Session()
 
 Then if you want to fetch an anime, say, Cowboy Bebop:
   
