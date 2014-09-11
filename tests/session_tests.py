@@ -4,13 +4,20 @@
 from nose.tools import *
 import myanimelist.session
 import myanimelist.anime
+import os
 
 class testSessionClass(object):
   @classmethod
   def setUpClass(self):
-    with open('credentials.txt', 'r') as cred_file:
-      line = cred_file.read().strip().split('\n')[0]
-      self.username, self.password = line.strip().split(',')
+    # see if our environment has credentials.
+    if 'MAL_USERNAME' and 'MAL_PASSWORD' in os.environ:
+      self.username = os.environ['MAL_USERNAME']
+      self.password = os.environ['MAL_PASSWORD']
+    else:
+      # rely on a flat textfile in project root.
+      with open('credentials.txt', 'r') as cred_file:
+        line = cred_file.read().strip().split('\n')[0]
+        self.username, self.password = line.strip().split(',')
 
     self.session = myanimelist.session.Session(self.username, self.password)
     self.logged_in_session = myanimelist.session.Session(self.username, self.password).login()
