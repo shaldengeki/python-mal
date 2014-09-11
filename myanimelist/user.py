@@ -9,19 +9,30 @@ import utilities
 from base import Base, Error, loadable
 
 class MalformedUserPageError(Error):
-  def __init__(self, username):
-    super(MalformedUserPageError, self).__init__()
-    self.username = username
+  def __init__(self, username, html, message=None):
+    super(MalformedUserPageError, self).__init__(message=message)
+    if isinstance(username, unicode):
+      self.username = username
+    else:
+      self.username = str(username).decode('utf-8')
+    if isinstance(html, unicode):
+      self.html = html
+    else:
+      self.html = str(html).decode('utf-8')
   def __str__(self):
     return "\n".join([
       super(MalformedUserPageError, self).__str__(),
-      "Username: " + unicode(self.username)
-    ])
+      "Username: " + unicode(self.username),
+      "HTML: " + self.html
+    ]).encode('utf-8')
 
 class InvalidUserError(Error):
-  def __init__(self, username):
-    super(InvalidUserError, self).__init__()
-    self.username = username
+  def __init__(self, username, message=None):
+    super(InvalidUserError, self).__init__(message=message)
+    if isinstance(username, unicode):
+      self.username = username
+    else:
+      self.username = str(username).decode('utf-8')
   def __str__(self):
     return "\n".join([
       super(InvalidUserError, self).__str__(),
@@ -71,7 +82,7 @@ class User(Base):
     username_tag = user_page.find('div', {'id': 'contentWrapper'}).find('h1')
     if not username_tag.find('div'):
       # otherwise, raise a MalformedUserPageError.
-      raise MalformedUserPageError(self.id, html, message="Could not find title div")
+      raise MalformedUserPageError(self.username, html, message="Could not find title div")
     info_panel_first = user_page.find('div', {'id': 'content'}).find('table').find('td')
 
     picture_tag = info_panel_first.find('img')

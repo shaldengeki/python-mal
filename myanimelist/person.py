@@ -8,23 +8,28 @@ import utilities
 from base import Base, Error, loadable
 
 class MalformedPersonPageError(Error):
-  def __init__(self, person_id):
-    super(MalformedPersonPageError, self).__init__()
-    self.person_id = person_id
+  def __init__(self, person_id, html, message=None):
+    super(MalformedPersonPageError, self).__init__(message=message)
+    self.person_id = int(person_id)
+    if isinstance(html, unicode):
+      self.html = html
+    else:
+      self.html = str(html).decode('utf-8')
   def __str__(self):
     return "\n".join([
       super(MalformedPersonPageError, self).__str__(),
-      "Person ID: " + unicode(self.person_id)
-    ])
+      "ID: " + unicode(self.person_id),
+      "HTML: " + self.html
+    ]).encode('utf-8')
 
 class InvalidPersonError(Error):
-  def __init__(self, person_id):
-    super(InvalidPersonError, self).__init__()
+  def __init__(self, person_id, message=None):
+    super(InvalidPersonError, self).__init__(message=message)
     self.person_id = person_id
   def __str__(self):
     return "\n".join([
       super(InvalidPersonError, self).__str__(),
-      "Person ID: " + unicode(self.person_id)
+      "ID: " + unicode(self.person_id)
     ])
 
 class Person(Base):

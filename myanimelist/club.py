@@ -8,23 +8,28 @@ import utilities
 from base import Base, Error, loadable
 
 class MalformedClubPageError(Error):
-  def __init__(self, club_id):
-    super(MalformedClubPageError, self).__init__()
-    self.club_id = club_id
+  def __init__(self, club_id, html, message=None):
+    super(MalformedClubPageError, self).__init__(message=message)
+    self.club_id = int(club_id)
+    if isinstance(html, unicode):
+      self.html = html
+    else:
+      self.html = str(html).decode('utf-8')
   def __str__(self):
     return "\n".join([
       super(MalformedClubPageError, self).__str__(),
-      "Club ID: " + unicode(self.club_id)
-    ])
+      "ID: " + unicode(self.club_id),
+      "HTML: " + self.html
+    ]).encode('utf-8')
 
 class InvalidClubError(Error):
-  def __init__(self, club_id):
-    super(InvalidClubError, self).__init__()
+  def __init__(self, club_id, message=None):
+    super(InvalidClubError, self).__init__(message=message)
     self.club_id = club_id
   def __str__(self):
     return "\n".join([
       super(InvalidClubError, self).__str__(),
-      "Club ID: " + unicode(self.club_id)
+      "ID: " + unicode(self.club_id)
     ])
 
 class Club(Base):

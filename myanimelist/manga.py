@@ -8,23 +8,28 @@ import utilities
 from base import Base, Error, loadable
 
 class MalformedMangaPageError(Error):
-  def __init__(self, manga_id):
-    super(MalformedMangaPageError, self).__init__()
-    self.manga_id = manga_id
+  def __init__(self, manga_id, html, message=None):
+    super(MalformedMangaPageError, self).__init__(message=message)
+    self.manga_id = int(manga_id)
+    if isinstance(html, unicode):
+      self.html = html
+    else:
+      self.html = str(html).decode('utf-8')
   def __str__(self):
     return "\n".join([
       super(MalformedMangaPageError, self).__str__(),
-      "Manga ID: " + unicode(self.manga_id)
-    ])
+      "ID: " + unicode(self.manga_id),
+      "HTML: " + self.html
+    ]).encode('utf-8')
 
 class InvalidMangaError(Error):
-  def __init__(self, manga_id):
-    super(InvalidMangaError, self).__init__()
+  def __init__(self, manga_id, message=None):
+    super(InvalidMangaError, self).__init__(message=message)
     self.manga_id = manga_id
   def __str__(self):
     return "\n".join([
       super(InvalidMangaError, self).__str__(),
-      "Manga ID: " + unicode(self.manga_id)
+      "ID: " + unicode(self.manga_id)
     ])
 
 class Manga(Base):

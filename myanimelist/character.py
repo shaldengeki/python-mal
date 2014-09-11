@@ -18,7 +18,7 @@ class MalformedCharacterPageError(Error):
   def __str__(self):
     return "\n".join([
       super(MalformedCharacterPageError, self).__str__(),
-      "Character ID: " + unicode(self.character_id),
+      "ID: " + unicode(self.character_id),
       "HTML: " + self.html
     ]).encode('utf-8')
 
@@ -29,7 +29,7 @@ class InvalidCharacterError(Error):
   def __str__(self):
     return "\n".join([
       super(InvalidCharacterError, self).__str__(),
-      "Character ID: " + unicode(self.character_id)
+      "ID: " + unicode(self.character_id)
     ])
 
 class Character(Base):
