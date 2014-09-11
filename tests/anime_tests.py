@@ -71,10 +71,10 @@ class testAnimeClass(object):
     assert isinstance(self.prisma.picture, unicode)
 
   def testAlternativeTitles(self):
-    assert u'Japanese' in self.bebop.alternative_titles and isinstance(self.bebop.alternative_titles['Japanese'], list) and u'カウボーイビバップ' in self.bebop.alternative_titles['Japanese']
-    assert u'English' in self.spicy_wolf.alternative_titles and isinstance(self.spicy_wolf.alternative_titles['English'], list) and u'Spice and Wolf' in self.spicy_wolf.alternative_titles['English']
-    assert u'Japanese' in self.space_dandy.alternative_titles and isinstance(self.space_dandy.alternative_titles['Japanese'], list) and u'スペース☆ダンディ' in self.space_dandy.alternative_titles['Japanese']
-    assert u'Japanese' in self.prisma.alternative_titles and isinstance(self.prisma.alternative_titles['Japanese'], list) and u'Fate/kaleid liner プリズマ☆イリヤ 運動会 DE ダンス!' in self.prisma.alternative_titles['Japanese']
+    assert u'Japanese' in self.bebop.alternative_titles and isinstance(self.bebop.alternative_titles[u'Japanese'], list) and u'カウボーイビバップ' in self.bebop.alternative_titles[u'Japanese']
+    assert u'English' in self.spicy_wolf.alternative_titles and isinstance(self.spicy_wolf.alternative_titles[u'English'], list) and u'Spice and Wolf' in self.spicy_wolf.alternative_titles[u'English']
+    assert u'Japanese' in self.space_dandy.alternative_titles and isinstance(self.space_dandy.alternative_titles[u'Japanese'], list) and u'スペース☆ダンディ' in self.space_dandy.alternative_titles[u'Japanese']
+    assert u'Japanese' in self.prisma.alternative_titles and isinstance(self.prisma.alternative_titles[u'Japanese'], list) and u'Fate/kaleid liner プリズマ☆イリヤ 運動会 DE ダンス!' in self.prisma.alternative_titles[u'Japanese']
 
   def testTypes(self):
     assert self.bebop.type == u'TV'
@@ -162,32 +162,32 @@ class testAnimeClass(object):
     assert isinstance(self.prisma.synopsis, unicode) and len(self.prisma.synopsis) > 0 and u'Einzbern' in self.prisma.synopsis
 
   def testRelated(self):
-    assert isinstance(self.spicy_wolf.related, dict) and 'Sequel' in self.spicy_wolf.related and self.spicy_wolf_sequel in self.spicy_wolf.related['Sequel']
-    assert isinstance(self.bebop.related, dict) and 'Side story' in self.bebop.related and self.bebop_side_story in self.bebop.related['Side story']
+    assert isinstance(self.spicy_wolf.related, dict) and 'Sequel' in self.spicy_wolf.related and self.spicy_wolf_sequel in self.spicy_wolf.related[u'Sequel']
+    assert isinstance(self.bebop.related, dict) and 'Side story' in self.bebop.related and self.bebop_side_story in self.bebop.related[u'Side story']
 
   def testCharacters(self):
     assert isinstance(self.spicy_wolf.characters, dict) and len(self.spicy_wolf.characters) > 0
-    assert self.holo in self.spicy_wolf.characters and self.spicy_wolf.characters[self.holo]['role'] == 'Main' and self.holo_va in self.spicy_wolf.characters[self.holo]['voice_actors']
+    assert self.holo in self.spicy_wolf.characters and self.spicy_wolf.characters[self.holo][u'role'] == 'Main' and self.holo_va in self.spicy_wolf.characters[self.holo][u'voice_actors']
     assert isinstance(self.bebop.characters, dict) and len(self.bebop.characters) > 0
-    assert self.hex in self.bebop.characters and self.bebop.characters[self.hex]['role'] == 'Supporting' and self.hex_va in self.bebop.characters[self.hex]['voice_actors']
+    assert self.hex in self.bebop.characters and self.bebop.characters[self.hex][u'role'] == 'Supporting' and self.hex_va in self.bebop.characters[self.hex][u'voice_actors']
     assert isinstance(self.space_dandy.characters, dict) and len(self.space_dandy.characters) > 0
-    assert self.toaster in self.space_dandy.characters and self.space_dandy.characters[self.toaster]['role'] == 'Supporting' and self.toaster_va in self.space_dandy.characters[self.toaster]['voice_actors']
+    assert self.toaster in self.space_dandy.characters and self.space_dandy.characters[self.toaster][u'role'] == 'Supporting' and self.toaster_va in self.space_dandy.characters[self.toaster][u'voice_actors']
     assert isinstance(self.totoro.characters, dict) and len(self.totoro.characters) > 0
-    assert self.satsuki in self.totoro.characters and self.totoro.characters[self.satsuki]['role'] == 'Main' and self.satsuki_va in self.totoro.characters[self.satsuki]['voice_actors']
+    assert self.satsuki in self.totoro.characters and self.totoro.characters[self.satsuki][u'role'] == 'Main' and self.satsuki_va in self.totoro.characters[self.satsuki][u'voice_actors']
     assert isinstance(self.prisma.characters, dict) and len(self.prisma.characters) > 0
-    assert self.ilya in self.prisma.characters and self.prisma.characters[self.ilya]['role'] == 'Main' and self.ilya_va in self.prisma.characters[self.ilya]['voice_actors']
+    assert self.ilya in self.prisma.characters and self.prisma.characters[self.ilya][u'role'] == 'Main' and self.ilya_va in self.prisma.characters[self.ilya][u'voice_actors']
 
   def testVoiceActors(self):
     assert isinstance(self.spicy_wolf.voice_actors, dict) and len(self.spicy_wolf.voice_actors) > 0
-    assert self.holo_va in self.spicy_wolf.voice_actors and self.spicy_wolf.voice_actors[self.holo_va]['role'] == 'Main' and self.spicy_wolf.voice_actors[self.holo_va]['character'] == self.holo
+    assert self.holo_va in self.spicy_wolf.voice_actors and self.spicy_wolf.voice_actors[self.holo_va][u'role'] == 'Main' and self.spicy_wolf.voice_actors[self.holo_va][u'character'] == self.holo
     assert isinstance(self.bebop.voice_actors, dict) and len(self.bebop.voice_actors) > 0
-    assert self.hex_va in self.bebop.voice_actors and self.bebop.voice_actors[self.hex_va]['role'] == 'Supporting' and self.bebop.voice_actors[self.hex_va]['character'] == self.hex
+    assert self.hex_va in self.bebop.voice_actors and self.bebop.voice_actors[self.hex_va][u'role'] == 'Supporting' and self.bebop.voice_actors[self.hex_va][u'character'] == self.hex
     assert isinstance(self.space_dandy.voice_actors, dict) and len(self.space_dandy.voice_actors) > 0
-    assert self.toaster_va in self.space_dandy.voice_actors and self.space_dandy.voice_actors[self.toaster_va]['role'] == 'Supporting' and self.space_dandy.voice_actors[self.toaster_va]['character'] == self.toaster
+    assert self.toaster_va in self.space_dandy.voice_actors and self.space_dandy.voice_actors[self.toaster_va][u'role'] == 'Supporting' and self.space_dandy.voice_actors[self.toaster_va][u'character'] == self.toaster
     assert isinstance(self.totoro.voice_actors, dict) and len(self.totoro.voice_actors) > 0
-    assert self.satsuki_va in self.totoro.voice_actors and self.totoro.voice_actors[self.satsuki_va]['role'] == 'Main' and self.totoro.voice_actors[self.satsuki_va]['character'] == self.satsuki
+    assert self.satsuki_va in self.totoro.voice_actors and self.totoro.voice_actors[self.satsuki_va][u'role'] == 'Main' and self.totoro.voice_actors[self.satsuki_va][u'character'] == self.satsuki
     assert isinstance(self.prisma.voice_actors, dict) and len(self.prisma.voice_actors) > 0
-    assert self.ilya_va in self.prisma.voice_actors and self.prisma.voice_actors[self.ilya_va]['role'] == 'Main' and self.prisma.voice_actors[self.ilya_va]['character'] == self.ilya
+    assert self.ilya_va in self.prisma.voice_actors and self.prisma.voice_actors[self.ilya_va][u'role'] == 'Main' and self.prisma.voice_actors[self.ilya_va][u'character'] == self.ilya
 
   def testStaff(self):
     assert isinstance(self.spicy_wolf.staff, dict) and len(self.spicy_wolf.staff) > 0

@@ -4,21 +4,26 @@ import datetime
 import re
 import urllib
 
+def fix_bad_html(html):
+  """
+    Fixes for various DOM errors that MAL commits.
+  """
+  # on anime list pages, sometimes tds won't be properly opened.
+  html = re.sub(r'[\s]td class=', "<td class=", html)
+  # on anime list pages, if the user doesn't specify progress, MAL will try to close a span it didn't open.
+  def anime_list_closing_span(match):
+    return match.group(u'count') + '/' + match.group(u'total') + '</td>'
+  html = re.sub(r'(?P<count>[0-9\-]+)</span>/(?P<total>[0-9\-]+)</a></span></td>', anime_list_closing_span, html)
+  return html
+
 def urlencode(url):
   """
     Given a string, return a string that can be used safely in a MAL url.
   """
-  return urllib.urlencode({'': url.encode('utf-8').replace(' ', '_')})[1:].replace('%2F', '/')
-
+  return urllib.urlencode({'': url.encode(u'utf-8').replace(' ', '_')})[1:].replace('%2F', '/')
 
 def extract_tags(tags):
   map(lambda x: x.extract(), tags)
-
-def decommaify_int(number):
-  """
-    Return an int represented by number, with commas removed.
-  """
-  return int(number.replace(',', ''))
 
 def parse_profile_date(text):
   """
@@ -34,21 +39,21 @@ def parse_profile_date(text):
 
   seconds_match = re.match(r'(?P<seconds>[0-9]+) second(s)? ago', text)
   if seconds_match:
-    return datetime.datetime.now() - datetime.timedelta(seconds=int(seconds_match.group('seconds')))
+    return datetime.datetime.now() - datetime.timedelta(seconds=int(seconds_match.group(u'seconds')))
 
   minutes_match = re.match(r'(?P<minutes>[0-9]+) minute(s)? ago', text)
   if minutes_match:
-    return datetime.datetime.now() - datetime.timedelta(minutes=int(minutes_match.group('minutes')))
+    return datetime.datetime.now() - datetime.timedelta(minutes=int(minutes_match.group(u'minutes')))
 
   hours_match = re.match(r'(?P<hours>[0-9]+) hour(s)? ago', text)
   if hours_match:
-    return datetime.datetime.now() - datetime.timedelta(hours=int(hours_match.group('hours')))
+    return datetime.datetime.now() - datetime.timedelta(hours=int(hours_match.group(u'hours')))
 
   today_match = re.match(r'Today, (?P<hour>[0-9]+):(?P<minute>[0-9]+) (?P<am>[APM]+)', text)
   if today_match:
-    hour = int(today_match.group('hour'))
-    minute = int(today_match.group('minute'))
-    am = today_match.group('am')
+    hour = int(today_match.group(u'hour'))
+    minute = int(today_match.group(u'minute'))
+    am = today_match.group(u'am')
     if am == u'PM' and hour < 12:
       hour += 12
     today = datetime.date.today()
@@ -56,9 +61,9 @@ def parse_profile_date(text):
 
   yesterday_match = re.match(r'Yesterday, (?P<hour>[0-9]+):(?P<minute>[0-9]+) (?P<am>[APM]+)', text)
   if yesterday_match:
-    hour = int(yesterday_match.group('hour'))
-    minute = int(yesterday_match.group('minute'))
-    am = yesterday_match.group('am')
+    hour = int(yesterday_match.group(u'hour'))
+    minute = int(yesterday_match.group(u'minute'))
+    am = yesterday_match.group(u'am')
     if am == u'PM' and hour < 12:
       hour += 12
     yesterday = datetime.date.today() - datetime.timedelta(days=1)
@@ -66,6 +71,10 @@ def parse_profile_date(text):
 
   try:
     return datetime.datetime.strptime(text, '%m-%d-%y, %I:%M %p')
+  except ValueError:
+    pass
+  try:
+    return datetime.datetime.strptime(text, '%m-%d-%y').date()
   except ValueError:
     pass
   try:

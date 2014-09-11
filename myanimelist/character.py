@@ -14,13 +14,13 @@ class MalformedCharacterPageError(Error):
     if isinstance(html, unicode):
       self.html = html
     else:
-      self.html = str(html).decode('utf-8')
+      self.html = str(html).decode(u'utf-8')
   def __str__(self):
     return "\n".join([
       super(MalformedCharacterPageError, self).__str__(),
       "ID: " + unicode(self.character_id),
       "HTML: " + self.html
-    ]).encode('utf-8')
+    ]).encode(u'utf-8')
 
 class InvalidCharacterError(Error):
   def __init__(self, character_id, message=None):
@@ -57,53 +57,53 @@ class Character(Base):
     """
     character_info = {}
     character_page = bs4.BeautifulSoup(html)
-    error_tag = character_page.find('div', {'class': 'badresult'})
+    error_tag = character_page.find(u'div', {'class': 'badresult'})
     if error_tag:
       # MAL says the character does not exist.
       raise InvalidCharacterError(self.id)
-    full_name_tag = character_page.find('div', {'id': 'contentWrapper'}).find('h1')
+    full_name_tag = character_page.find(u'div', {'id': 'contentWrapper'}).find(u'h1')
     if not full_name_tag:
       # Page is malformed.
       raise MalformedCharacterPageError(self.id, html, message="Could not find title div")
-    character_info['full_name'] = full_name_tag.text.strip()
+    character_info[u'full_name'] = full_name_tag.text.strip()
 
-    info_panel_first = character_page.find('div', {'id': 'content'}).find('table').find('td')
+    info_panel_first = character_page.find(u'div', {'id': 'content'}).find(u'table').find(u'td')
 
-    picture_tag = info_panel_first.find('img')
-    character_info['picture'] = picture_tag.get('src')
+    picture_tag = info_panel_first.find(u'img')
+    character_info[u'picture'] = picture_tag.get(u'src')
 
     # assemble animeography for this character.
-    character_info['animeography'] = {}
-    animeography_header = info_panel_first.find('div', text=u'Animeography')
+    character_info[u'animeography'] = {}
+    animeography_header = info_panel_first.find(u'div', text=u'Animeography')
     if animeography_header:
-      animeography_table = animeography_header.find_next_sibling('table')
-      for row in animeography_table.find_all('tr'):
+      animeography_table = animeography_header.find_next_sibling(u'table')
+      for row in animeography_table.find_all(u'tr'):
         # second column has anime info.
-        info_col = row.find_all('td')[1]
-        anime_link = info_col.find('a')
-        link_parts = anime_link.get('href').split('/')
+        info_col = row.find_all(u'td')[1]
+        anime_link = info_col.find(u'a')
+        link_parts = anime_link.get(u'href').split(u'/')
         # of the form: /anime/1/Cowboy_Bebop
         anime = self.session.anime(int(link_parts[2])).set({'title': anime_link.text})
-        role = info_col.find('small').text
-        character_info['animeography'][anime] = role
+        role = info_col.find(u'small').text
+        character_info[u'animeography'][anime] = role
 
     # assemble mangaography for this character.
-    character_info['mangaography'] = {}
-    mangaography_header = info_panel_first.find('div', text=u'Mangaography')
+    character_info[u'mangaography'] = {}
+    mangaography_header = info_panel_first.find(u'div', text=u'Mangaography')
     if mangaography_header:
-      mangaography_table = mangaography_header.find_next_sibling('table')
-      for row in mangaography_table.find_all('tr'):
+      mangaography_table = mangaography_header.find_next_sibling(u'table')
+      for row in mangaography_table.find_all(u'tr'):
         # second column has manga info.
-        info_col = row.find_all('td')[1]
-        manga_link = info_col.find('a')
-        link_parts = manga_link.get('href').split('/')
+        info_col = row.find_all(u'td')[1]
+        manga_link = info_col.find(u'a')
+        link_parts = manga_link.get(u'href').split(u'/')
         # of the form: /manga/1/Cowboy_Bebop
         manga = self.session.manga(int(link_parts[2])).set({'title': manga_link.text})
-        role = info_col.find('small').text
-        character_info['mangaography'][manga] = role
+        role = info_col.find(u'small').text
+        character_info[u'mangaography'][manga] = role
 
     num_favorites_node = info_panel_first.find(text=re.compile(u'Member Favorites: '))
-    character_info['num_favorites'] = int(num_favorites_node.strip().split(': ')[1])
+    character_info[u'num_favorites'] = int(num_favorites_node.strip().split(u': ')[1])
 
     return character_info
 
@@ -114,16 +114,16 @@ class Character(Base):
     character_info = self.parse_sidebar(html)
     character_page = bs4.BeautifulSoup(html)
 
-    second_col = character_page.find('div', {'id': 'content'}).find('table').find('tr').find_all('td', recursive=False)[1]
-    name_elt = second_col.find('div', {'class': 'normal_header'})
+    second_col = character_page.find(u'div', {'id': 'content'}).find(u'table').find(u'tr').find_all(u'td', recursive=False)[1]
+    name_elt = second_col.find(u'div', {'class': 'normal_header'})
 
-    name_jpn_node = name_elt.find('small')
+    name_jpn_node = name_elt.find(u'small')
     if name_jpn_node:
-      character_info['name_jpn'] = name_jpn_node.text[1:-1]
+      character_info[u'name_jpn'] = name_jpn_node.text[1:-1]
     else:
-      character_info['name_jpn'] = None
-    name_elt.find('span').extract()
-    character_info['name'] = name_elt.text.rstrip()
+      character_info[u'name_jpn'] = None
+    name_elt.find(u'span').extract()
+    character_info[u'name'] = name_elt.text.rstrip()
 
     description_elts = []
     curr_elt = name_elt.nextSibling
@@ -132,22 +132,22 @@ class Character(Base):
         break
       description_elts.append(unicode(curr_elt))
       curr_elt = curr_elt.nextSibling
-    character_info['description'] = ''.join(description_elts)
+    character_info[u'description'] = ''.join(description_elts)
 
-    character_info['voice_actors'] = {}
-    voice_actors_header = second_col.find('div', text=u'Voice Actors')
+    character_info[u'voice_actors'] = {}
+    voice_actors_header = second_col.find(u'div', text=u'Voice Actors')
     if voice_actors_header:
-      voice_actors_table = voice_actors_header.find_next_sibling('table')
-      for row in voice_actors_table.find_all('tr'):
+      voice_actors_table = voice_actors_header.find_next_sibling(u'table')
+      for row in voice_actors_table.find_all(u'tr'):
         # second column has va info.
-        info_col = row.find_all('td')[1]
-        voice_actor_link = info_col.find('a')
-        name = ' '.join(reversed(voice_actor_link.text.split(', ')))
-        link_parts = voice_actor_link.get('href').split('/')
+        info_col = row.find_all(u'td')[1]
+        voice_actor_link = info_col.find(u'a')
+        name = ' '.join(reversed(voice_actor_link.text.split(u', ')))
+        link_parts = voice_actor_link.get(u'href').split(u'/')
         # of the form: /people/82/Romi_Park
         person = self.session.person(int(link_parts[2])).set({'name': name})
-        language = info_col.find('small').text
-        character_info['voice_actors'][person] = language
+        language = info_col.find(u'small').text
+        character_info[u'voice_actors'][person] = language
     return character_info
 
     self._name = None
@@ -166,14 +166,14 @@ class Character(Base):
   def parse_favorites(self, html):
     character_info = self.parse_sidebar(html)
     favorites_page = bs4.BeautifulSoup(html)
-    second_col = favorites_page.find('div', {'id': 'content'}).find('table').find('tr').find_all('td', recursive=False)[1]
-    character_info['favorites'] = []
-    curr_elt = second_col.find('div', text=u'Users with Favorites').nextSibling
+    second_col = favorites_page.find(u'div', {'id': 'content'}).find(u'table').find(u'tr').find_all(u'td', recursive=False)[1]
+    character_info[u'favorites'] = []
+    curr_elt = second_col.find(u'div', text=u'Users with Favorites').nextSibling
     while curr_elt is not None:
       if curr_elt.name == u'a':
-        link_parts = curr_elt.get('href').split('/')
+        link_parts = curr_elt.get(u'href').split(u'/')
         # of the form /profile/shaldengeki
-        character_info['favorites'].append(self.session.user(username=link_parts[2]))
+        character_info[u'favorites'].append(self.session.user(username=link_parts[2]))
       curr_elt = curr_elt.nextSibling
 
     return character_info
@@ -181,29 +181,29 @@ class Character(Base):
   def parse_pictures(self, html):
     character_info = self.parse_sidebar(html)
     picture_page = bs4.BeautifulSoup(html)
-    second_col = picture_page.find('div', {'id': 'content'}).find('table').find('tr').find_all('td', recursive=False)[1]
+    second_col = picture_page.find(u'div', {'id': 'content'}).find(u'table').find(u'tr').find_all(u'td', recursive=False)[1]
 
-    picture_table = second_col.find('table', recursive=False)
-    character_info['pictures'] = []
+    picture_table = second_col.find(u'table', recursive=False)
+    character_info[u'pictures'] = []
     if picture_table:
-      character_info['pictures'] = map(lambda img: img.get('src'), picture_table.find_all('img'))
+      character_info[u'pictures'] = map(lambda img: img.get(u'src'), picture_table.find_all(u'img'))
     return character_info
 
   def parse_clubs(self, html):
     character_info = self.parse_sidebar(html)
     clubs_page = bs4.BeautifulSoup(html)
-    second_col = clubs_page.find('div', {'id': 'content'}).find('table').find('tr').find_all('td', recursive=False)[1]
+    second_col = clubs_page.find(u'div', {'id': 'content'}).find(u'table').find(u'tr').find_all(u'td', recursive=False)[1]
 
-    clubs_header = second_col.find('div', text=u'Related Clubs')
-    character_info['clubs'] = []
+    clubs_header = second_col.find(u'div', text=u'Related Clubs')
+    character_info[u'clubs'] = []
     if clubs_header:
       curr_elt = clubs_header.nextSibling
       while curr_elt is not None:
         if curr_elt.name == u'div':
-          link = curr_elt.find('a')
-          club_id = int(re.match(r'/clubs\.php\?cid=(?P<id>[0-9]+)', link.get('href')).group('id'))
-          num_members = int(re.match(r'(?P<num>[0-9]+) members', curr_elt.find('small').text).group('num'))
-          character_info['clubs'].append(self.session.club(club_id).set({'name': link.text, 'num_members': num_members}))
+          link = curr_elt.find(u'a')
+          club_id = int(re.match(r'/clubs\.php\?cid=(?P<id>[0-9]+)', link.get(u'href')).group(u'id'))
+          num_members = int(re.match(r'(?P<num>[0-9]+) members', curr_elt.find(u'small').text).group(u'num'))
+          character_info[u'clubs'].append(self.session.club(club_id).set({'name': link.text, 'num_members': num_members}))
         curr_elt = curr_elt.nextSibling
     return character_info
 
@@ -211,7 +211,7 @@ class Character(Base):
     """
       Fetches the MAL character page and sets the current character's attributes.
     """
-    character = self.session.session.get('http://myanimelist.net/character/' + str(self.id)).text
+    character = self.session.session.get(u'http://myanimelist.net/character/' + str(self.id)).text
     self.set(self.parse(character))
     return self
 
@@ -219,8 +219,8 @@ class Character(Base):
     """
       Fetches the MAL character favorites page and sets the current character's attributes.
     """
-    print 'http://myanimelist.net/character/' + str(self.id) + '/favorites'
-    character = self.session.session.get('http://myanimelist.net/character/' + str(self.id) + '/' + utilities.urlencode(self.name) + '/favorites').text
+    print 'http://myanimelist.net/character/' + str(self.id) + u'/favorites'
+    character = self.session.session.get(u'http://myanimelist.net/character/' + str(self.id) + u'/' + utilities.urlencode(self.name) + u'/favorites').text
     self.set(self.parse_favorites(character))
     return self
 
@@ -228,7 +228,7 @@ class Character(Base):
     """
       Fetches the MAL character pictures page and sets the current character's attributes.
     """
-    character = self.session.session.get('http://myanimelist.net/character/' + str(self.id) + '/' + utilities.urlencode(self.name) + '/pictures').text
+    character = self.session.session.get(u'http://myanimelist.net/character/' + str(self.id) + u'/' + utilities.urlencode(self.name) + u'/pictures').text
     self.set(self.parse_pictures(character))
     return self
 
@@ -236,67 +236,67 @@ class Character(Base):
     """
       Fetches the MAL character clubs page and sets the current character's attributes.
     """
-    character = self.session.session.get('http://myanimelist.net/character/' + str(self.id) + '/' + utilities.urlencode(self.name) + '/clubs').text
+    character = self.session.session.get(u'http://myanimelist.net/character/' + str(self.id) + u'/' + utilities.urlencode(self.name) + u'/clubs').text
     self.set(self.parse_clubs(character))
     return self
 
   @property
-  @loadable('load')
+  @loadable(u'load')
   def name(self):
     return self._name
 
   @property
-  @loadable('load')
+  @loadable(u'load')
   def full_name(self):
     return self._full_name
 
   @property
-  @loadable('load')
+  @loadable(u'load')
   def name_jpn(self):
     return self._name_jpn
 
   @property
-  @loadable('load')
+  @loadable(u'load')
   def description(self):
     return self._description
 
   @property
-  @loadable('load')
+  @loadable(u'load')
   def voice_actors(self):
     return self._voice_actors
 
   @property
-  @loadable('load')
+  @loadable(u'load')
   def animeography(self):
     return self._animeography
 
   @property
-  @loadable('load')
+  @loadable(u'load')
   def mangaography(self):
     return self._mangaography
 
   @property
-  @loadable('load')
+  @loadable(u'load')
   def num_favorites(self):
     return self._num_favorites
 
   @property
-  @loadable('load_favorites')
+  @loadable(u'load_favorites')
   def favorites(self):
     return self._favorites
 
   @property
-  @loadable('load')
+  @loadable(u'load')
   def picture(self):
     return self._picture
 
   @property
-  @loadable('load_pictures')
+  @loadable(u'load_pictures')
   def pictures(self):
     return self._pictures
 
   @property
-  @loadable('load_clubs')
+  @loadable(u'load_clubs')
   def clubs(self):
     return self._clubs
 

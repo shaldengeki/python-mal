@@ -70,10 +70,10 @@ class Base(object):
         try:
           setattr(self, self._id_attribute, attr_dict[key])
         except:
-          print "Dict:"
+          print u"Dict:"
           print attr_dict
-          print "Key: " + key
+          print u"Key: " + key
           raise
       else:
-        setattr(self, "_" + key, attr_dict[key])
+        setattr(self, u"_" + key, attr_dict[key])
     return self

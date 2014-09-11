@@ -14,13 +14,13 @@ class MalformedMangaPageError(Error):
     if isinstance(html, unicode):
       self.html = html
     else:
-      self.html = str(html).decode('utf-8')
+      self.html = str(html).decode(u'utf-8')
   def __str__(self):
     return "\n".join([
       super(MalformedMangaPageError, self).__str__(),
       "ID: " + unicode(self.manga_id),
       "HTML: " + self.html
-    ]).encode('utf-8')
+    ]).encode(u'utf-8')
 
 class InvalidMangaError(Error):
   def __init__(self, manga_id, message=None):
@@ -45,6 +45,6 @@ class Manga(Base):
     pass
 
   @property
-  @loadable('load')
+  @loadable(u'load')
   def title(self):
     return self._title

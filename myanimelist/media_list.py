@@ -14,17 +14,17 @@ class MalformedMediaListPageError(Error):
     if isinstance(username, unicode):
       self.username = username
     else:
-      self.username = str(username).decode('utf-8')
+      self.username = str(username).decode(u'utf-8')
     if isinstance(html, unicode):
       self.html = html
     else:
-      self.html = str(html).decode('utf-8')
+      self.html = str(html).decode(u'utf-8')
   def __str__(self):
     return "\n".join([
       super(MalformedMediaListPageError, self).__str__(),
       "Username: " + unicode(self.username),
       "HTML: " + self.html
-    ]).encode('utf-8')
+    ]).encode(u'utf-8')
 
 class InvalidMediaListError(Error):
   def __init__(self, username, message=None):
@@ -32,7 +32,7 @@ class InvalidMediaListError(Error):
     if isinstance(username, unicode):
       self.username = username
     else:
-      self.username = str(username).decode('utf-8')
+      self.username = str(username).decode(u'utf-8')
   def __str__(self):
     return "\n".join([
       super(InvalidMediaListError, self).__str__(),
@@ -61,19 +61,19 @@ class MediaList(Base):
     pass
 
   def load(self):
-    media_list = self.session.session.get('http://myanimelist.net/' + self.type + 'list/' + utilities.urlencode(self.username)).text
+    media_list = self.session.session.get(u'http://myanimelist.net/' + self.type + u'list/' + utilities.urlencode(self.username)).text
     self.set(self.parse(media_list))
     return self
 
   @property
-  @loadable('load')
+  @loadable(u'load')
   def list(self):
     return self._list
 
   @property
-  @loadable('load')
+  @loadable(u'load')
   def stats(self):
     return self._stats
 
   def section(self, status):
-    return {k: self.list[k] for k in self.list if self.list[k]['status'] == status}
+    return {k: self.list[k] for k in self.list if self.list[k][u'status'] == status}

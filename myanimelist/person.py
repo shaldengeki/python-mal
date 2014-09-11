@@ -14,13 +14,13 @@ class MalformedPersonPageError(Error):
     if isinstance(html, unicode):
       self.html = html
     else:
-      self.html = str(html).decode('utf-8')
+      self.html = str(html).decode(u'utf-8')
   def __str__(self):
     return "\n".join([
       super(MalformedPersonPageError, self).__str__(),
       "ID: " + unicode(self.person_id),
       "HTML: " + self.html
-    ]).encode('utf-8')
+    ]).encode(u'utf-8')
 
 class InvalidPersonError(Error):
   def __init__(self, person_id, message=None):
@@ -45,6 +45,6 @@ class Person(Base):
     pass
 
   @property
-  @loadable('load')
+  @loadable(u'load')
   def name(self):
     return self._name
