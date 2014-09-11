@@ -393,7 +393,7 @@ class User(Base):
     # collect all reviews over all pages.
     review_collection = []
     while True:
-      user_reviews = self.session.session.get('http://myanimelist.net/profile/' + utilities.urlencode(self.username) + '/reviews&' + urllib.urlencode({'p': str(page)})).text
+      user_reviews = self.session.session.get('http://myanimelist.net/profile/' + utilities.urlencode(self.username) + '/reviews&' + urllib.urlencode({'p': page})).text
       parse_result = self.parse_reviews(user_reviews)
       if page == 0:
         # only set attributes once the first time around.
