@@ -59,7 +59,7 @@ def parse_profile_date(text):
     hour = int(yesterday_match.group('hour'))
     minute = int(yesterday_match.group('minute'))
     am = yesterday_match.group('am')
-    if am == u'PM':
+    if am == u'PM' and hour < 12:
       hour += 12
     yesterday = datetime.date.today() - datetime.timedelta(days=1)
     return datetime.datetime(year=yesterday.year, month=yesterday.month, day=yesterday.day, hour=hour, minute=minute, second=0)
