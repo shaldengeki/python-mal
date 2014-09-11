@@ -300,7 +300,7 @@ class User(Base):
         else:
           review_info[u'media_total'] = int(consumption_match[u'media_total'])
 
-        review_info[u'rating'] = int(meta_rows[3].find(u'div').text.replace(u'Overall Rating: u', ''))
+        review_info[u'rating'] = int(meta_rows[3].find(u'div').text.replace(u'Overall Rating: ', ''))
 
         for x in review_elt.find_all([u'div', 'a']):
           x.extract()
