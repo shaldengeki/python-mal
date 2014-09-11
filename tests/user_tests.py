@@ -24,6 +24,9 @@ class testUserClass(object):
     self.fang_tan_club = self.session.club(9560)
     self.satsuki_club = self.session.club(6246)
 
+    self.ziron = self.session.user(u'Ziron')
+    self.seraph = self.session.user(u'seraphzero')
+
     self.mona = self.session.user(u'monausicaa')
     self.megami = self.session.manga(446)
     self.chobits = self.session.manga(107)
@@ -31,6 +34,12 @@ class testUserClass(object):
     self.kayano = self.session.person(10765)
 
     self.saka = self.session.user(u'saka')
+    self.mal_api_club = self.session.club(13727)
+    self.taiga_club = self.session.club(21400)
+
+    self.smooched = self.session.user(u'Smooched')
+    self.sao = self.session.anime(11757)
+    self.threger = self.session.user(u'threger')
 
   @raises(TypeError)
   def testNoIDInvalidUser(self):
@@ -49,7 +58,7 @@ class testUserClass(object):
     self.session.user(457384754).load()
 
   def testUserValid(self):
-    assert isinstance(self.bebop, myanimelist.user.User)
+    assert isinstance(self.shal, myanimelist.user.User)
 
   def testId(self):
     assert self.shal.id == 64611
@@ -89,7 +98,7 @@ class testUserClass(object):
     assert isinstance(self.mona.last_online, datetime.datetime)
 
   def testGender(self):
-    assert self.shal.gender == None
+    assert self.shal.gender == u"Not specified"
     assert self.mona.gender == u"Male"
 
   def testBirthday(self):
@@ -141,12 +150,53 @@ class testUserClass(object):
 
   def testAnimeStats(self):
     assert isinstance(self.shal.anime_stats, dict) and len(self.shal.anime_stats) > 0
-    assert self.shal.anime_stats['time'] == 38.9 and self.shal.anime_stats['total_entries'] == 146
+    assert self.shal.anime_stats['Time (Days)'] == 38.9 and self.shal.anime_stats['Total Entries'] == 146
     assert isinstance(self.mona.anime_stats, dict) and len(self.mona.anime_stats) > 0
-    assert self.mona.anime_stats['time'] >= 470.9 and self.mona.anime_stats['total_entries'] >= 1822
+    assert self.mona.anime_stats['Time (Days)'] >= 470 and self.mona.anime_stats['Total Entries'] >= 1822
 
   def testMangaStats(self):
     assert isinstance(self.shal.manga_stats, dict) and len(self.shal.manga_stats) > 0
-    assert self.shal.manga_stats['time'] == 1.0 and self.shal.manga_stats['total_entries'] == 2
+    assert self.shal.manga_stats['Time (Days)'] == 1.0 and self.shal.manga_stats['Total Entries'] == 2
     assert isinstance(self.mona.manga_stats, dict) and len(self.mona.manga_stats) > 0
-    assert self.mona.manga_stats['time'] >= 69.4 and self.mona.manga_stats['total_entries'] >= 186
+    assert self.mona.manga_stats['Time (Days)'] >= 69.4 and self.mona.manga_stats['Total Entries'] >= 186
+
+  def testAbout(self):
+    assert isinstance(self.shal.about, unicode) and len(self.shal.about) > 0
+    assert u'retiree' in self.shal.about
+    assert isinstance(self.mona.about, unicode) and len(self.mona.about) > 0
+    assert self.mona.about == u'Nothing yet'
+
+  def testReviews(self):
+    assert isinstance(self.shal.reviews, dict) and len(self.shal.reviews) == 0
+    assert isinstance(self.smooched.reviews, dict) and len(self.smooched.reviews) >= 11
+    assert self.sao in self.smooched.reviews
+    assert isinstance(self.smooched.reviews[self.sao]['date'], datetime.date) and self.smooched.reviews[self.sao]['date'] == datetime.date(year=2012, month=7, day=24)
+    assert self.smooched.reviews[self.sao]['people_helped'] >= 259 and self.smooched.reviews[self.sao]['people_total'] >= 644
+    assert self.smooched.reviews[self.sao]['media_consumed'] == 13 and self.smooched.reviews[self.sao]['media_total'] == 25
+    assert self.smooched.reviews[self.sao]['rating'] == 7
+    assert isinstance(self.smooched.reviews[self.sao]['text'], unicode) and len(self.smooched.reviews[self.sao]['text']) > 0
+    assert isinstance(self.threger.reviews, dict) and len(self.threger.reviews) == 0
+
+  def testRecommendations(self):
+    assert isinstance(self.shal.recommendations, dict) and len(self.shal.recommendations) > 0
+    assert self.kanon in self.shal.recommendations and self.shal.recommendations[self.kanon]['anime'] == self.clannad_as
+    assert isinstance(self.shal.recommendations[self.kanon]['date'], datetime.date) and self.shal.recommendations[self.kanon]['date'] == datetime.date(year=2009, month=3, day=13)
+    assert isinstance(self.shal.recommendations[self.kanon]['text'], unicode) and len(self.shal.recommendations[self.kanon]['text']) > 0
+    assert isinstance(self.mona.recommendations, dict) and len(self.mona.recommendations) == 0
+    assert isinstance(self.saka.recommendations, dict) and len(self.saka.recommendations) >= 15
+    assert isinstance(self.threger.recommendations, dict) and len(self.threger.recommendations) == 0
+
+  def testClubs(self):
+    assert isinstance(self.shal.clubs, list) and len(self.shal.clubs) == 7
+    assert self.fang_tan_club in self.shal.clubs and self.satsuki_club in self.shal.clubs
+    assert isinstance(self.saka.clubs, list) and len(self.saka.clubs) >= 10
+    assert self.mal_api_club in self.saka.clubs and self.taiga_club in self.saka.clubs
+    assert isinstance(self.threger.clubs, list) and len(self.threger.clubs) == 0
+
+  def testFriends(self):
+    assert isinstance(self.shal.friends, dict) and len(self.shal.friends) >= 31
+    assert self.ziron in self.shal.friends and isinstance(self.shal.friends[self.ziron]['last_active'], datetime.datetime)
+    assert self.ziron in self.shal.friends and isinstance(self.shal.friends[self.ziron]['last_active'], datetime.datetime)
+    assert self.seraph in self.shal.friends and isinstance(self.shal.friends[self.seraph]['last_active'], datetime.datetime) and self.shal.friends[self.seraph]['since'] == datetime.datetime(year=2012, month=10, day=13, hour=19, minute=31, second=0)
+    assert isinstance(self.mona.friends, dict) and len(self.mona.friends) >= 0
+    assert isinstance(self.threger.friends, dict) and len(self.threger.friends) == 0
