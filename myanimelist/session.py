@@ -8,6 +8,7 @@ import character
 import person
 import user
 import club
+import anime_list
 from base import Error
 
 class UnauthorizedError(Error):
@@ -40,7 +41,7 @@ class Session(object):
     """
     if self.session is None:
       return False
-    panel = self.session.get('http://myanimelist.net/panel.php')
+    panel = self.session.get(u'http://myanimelist.net/panel.php')
     if 'Logout' in panel.content:
       return True
     return False
@@ -56,7 +57,7 @@ class Session(object):
       'sublogin': 'Login'
     }
     self.session.headers.update(mal_headers)
-    r = self.session.post('http://myanimelist.net/login.php', data=mal_payload)
+    r = self.session.post(u'http://myanimelist.net/login.php', data=mal_payload)
     return self
   def anime(self, anime_id):
     return anime.Anime(self, anime_id)
@@ -68,5 +69,7 @@ class Session(object):
     return person.Person(self, person_id)
   def user(self, username):
     return user.User(self, username)
+  def anime_list(self, username):
+    return anime_list.AnimeList(self, username)
   def club(self, club_id):
     return club.Club(self, club_id)
