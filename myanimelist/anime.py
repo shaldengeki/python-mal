@@ -46,14 +46,6 @@ class Anime(Base):
     latest_id = int(latest_entry['rel'][1:])
     return Anime(session, latest_id)
 
-  def __repr__(self):
-    return u"<Anime ID: " + unicode(self.id) + u">"
-  def __hash__(self):
-    return hash(self.id)
-  def __eq__(self, anime):
-    return isinstance(anime, Anime) and self.id == anime.id
-  def __ne__(self, anime):
-    return not self.__eq__(anime)
   def __init__(self, session, anime_id):
     super(Anime, self).__init__(session)
     self.id = anime_id

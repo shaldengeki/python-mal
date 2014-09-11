@@ -28,14 +28,6 @@ class InvalidClubError(Error):
     ])
 
 class Club(Base):
-  def __repr__(self):
-    return u"<Club ID: " + unicode(self.id) + u">"
-  def __hash__(self):
-    return hash(self.id)
-  def __eq__(self, club):
-    return isinstance(club, Club) and self.id == club.id
-  def __ne__(self, club):
-    return not self.__eq__(club)
   def __init__(self, session, club_id):
     super(Club, self).__init__(session)
     self.id = club_id
@@ -43,6 +35,10 @@ class Club(Base):
       raise InvalidClubError(self.id)
     self._name = None
     self._num_members = None
+
+  def load(self):
+    # TODO
+    pass
 
   @property
   @loadable('load')

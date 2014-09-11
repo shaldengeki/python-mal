@@ -27,6 +27,10 @@ class Session(object):
     self.session.headers.update({
       'User-Agent': 'iMAL-iOS'
     })
+    """
+      TODO: pass this into spawned objects
+      make this setting actually do something
+    """
     self.suppress_parse_exceptions = False
   def logged_in(self):
     """

@@ -1,6 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-
+import abc
 import functools
 
 class Error(Exception):
@@ -26,15 +26,40 @@ def loadable(func_name):
 
 class Base(object):
   '''
+    Abstract base class for MAL resources.
     Provides autoloading, auto-setting functionality for other MAL objects.
   '''
+  __metaclass__ = abc.ABCMeta
+
+  # attribute name for primary reference key to this object.
+  # when an attribute by the name given by _id_attribute is passed into set(),
+  # set() doesn't prepend an underscore for load()ing.
   _id_attribute = "id"
+
+  def __repr__(self):
+    return u"".join([
+      "<",
+      self.__class__.__name__,
+      " ",
+      self._id_attribute,
+      ": ",
+      unicode(getattr(self, self._id_attribute)),
+      ">"
+    ])
+  def __hash__(self):
+    return hash(getattr(self, self._id_attribute))
+  def __eq__(self, other):
+    return isinstance(other, self.__class__) and getattr(self, self._id_attribute) == getattr(other, other._id_attribute)
+  def __ne__(self, other):
+    return not self.__eq__(other)
+
   def __init__(self, session):
     self.session = session
     self.suppress_exceptions = False
 
+  @abc.abstractmethod
   def load(self):
-    raise NotImplementedError("Subclasses must implement load()")
+    pass
 
   def set(self, attr_dict):
     """

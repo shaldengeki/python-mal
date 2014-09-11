@@ -30,14 +30,6 @@ class InvalidUserError(Error):
 
 class User(Base):
   _id_attribute = "username"
-  def __repr__(self):
-    return u"<User name: " + unicode(self.username) + ">"
-  def __hash__(self):
-    return hash(self.username)
-  def __eq__(self, user):
-    return isinstance(user, User) and self.username == user.username
-  def __ne__(self, user):
-    return not self.__eq__(user)
   def __init__(self, session, username):
     super(User, self).__init__(session)
     self.username = username

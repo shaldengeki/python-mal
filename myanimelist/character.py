@@ -33,14 +33,6 @@ class InvalidCharacterError(Error):
     ])
 
 class Character(Base):
-  def __repr__(self):
-    return u"<Character ID: " + unicode(self.id) + u">"
-  def __hash__(self):
-    return hash(self.id)
-  def __eq__(self, character):
-    return isinstance(character, Character) and self.id == character.id
-  def __ne__(self, character):
-    return not self.__eq__(character)
   def __init__(self, session, character_id):
     super(Character, self).__init__(session)
     self.id = character_id
