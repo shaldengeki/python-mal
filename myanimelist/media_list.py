@@ -51,10 +51,19 @@ class MediaList(Base):
     self._list = None
     self._stats = None
 
-  # subclasses must define a list type, a list dict (what an unfortunate name), and a stats dict.
+  # subclasses must define a list type and a parser for the media list DOM.
   @abc.abstractproperty
   def type(self):
     pass
+
+  @abc.abstractmethod
+  def parse(self, html):
+    pass
+
+  def load(self):
+    media_list = self.session.session.get('http://myanimelist.net/' + self.type + 'list/' + utilities.urlencode(self.username)).text
+    self.set(self.parse(media_list))
+    return self
 
   @property
   @loadable('load')
@@ -65,3 +74,6 @@ class MediaList(Base):
   @loadable('load')
   def stats(self):
     return self._stats
+
+  def section(self, status):
+    return {k: self.list[k] for k in self.list if self.list[k]['status'] == status}
