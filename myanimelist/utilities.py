@@ -49,7 +49,7 @@ def parse_profile_date(text):
     hour = int(today_match.group('hour'))
     minute = int(today_match.group('minute'))
     am = today_match.group('am')
-    if am == u'PM':
+    if am == u'PM' and hour < 12:
       hour += 12
     today = datetime.date.today()
     return datetime.datetime(year=today.year, month=today.month, day=today.day, hour=hour, minute=minute, second=0)
