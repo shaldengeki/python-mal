@@ -3,7 +3,6 @@
 
 from nose.tools import *
 import datetime
-import pytz
 import myanimelist.session
 import myanimelist.anime
 

@@ -2,8 +2,6 @@
 # -*- coding: utf-8 -*-
 
 from nose.tools import *
-import datetime
-import pytz
 import myanimelist.session
 import myanimelist.character
 import myanimelist.user
