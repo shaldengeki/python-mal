@@ -1,3 +1,4 @@
+[![Build Status](https://travis-ci.org/shaldengeki/python-mal.svg)](https://travis-ci.org/shaldengeki/python-mal)
 python-mal
 ==========
 
