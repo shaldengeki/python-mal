@@ -96,7 +96,7 @@ class MediaList(Base):
     cols = soup.find_all(u'td')
     entry_info = {u'status': status}
     try:
-      entry_info[u'score'] = int(cols[column_names.index('score')].text)
+      entry_info[u'score'] = int(cols[column_names['score']].text)
     except ValueError:
       entry_info[u'score'] = None
     return entry_info
@@ -105,16 +105,16 @@ class MediaList(Base):
     """
       Given:
         columns: a list of bs4 elements containing a media list section's header columns
-      Return a list of table column names, for use in parse_section_row.
+      Return a dict of table column names to column indices, for use in parse_section_row.
     """
-    column_names = []
-    for column in columns:
+    column_names = {}
+    for i,column in enumerate(columns):
       if column.text == u'#':
-        column_names.append('#')
+        column_names['#'] = i
       elif u'Title' in column.text:
-        column_names.append('title')
+        column_names['title'] = i
       elif u'Score' in column.text:
-        column_names.append('score')
+        column_names['score'] = i
     return column_names    
 
   def parse(self, html, is_section=False):
@@ -165,7 +165,7 @@ class MediaList(Base):
       curr_row = table_header.findNext(u'table')
       while not curr_row.find(u'td', {'class': 'category_totals'}):
         cols = curr_row.find_all(u'td')
-        media_link = cols[column_names.index('title')].find(u'a', recursive=False)
+        media_link = cols[column_names['title']].find(u'a', recursive=False)
         link_parts = media_link.get(u'href').split(u'/')
         # of the form: /anime|manga/15061/Aikatsu!
         media = getattr(self.session, self.type)(int(link_parts[2])).set({'title': media_link.text})
