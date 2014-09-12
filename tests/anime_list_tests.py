@@ -5,6 +5,7 @@ from nose.tools import *
 import datetime
 
 import myanimelist.session
+import myanimelist.media_list
 import myanimelist.anime_list
 
 class testAnimeListClass(object):
@@ -33,7 +34,7 @@ class testAnimeListClass(object):
   def testNoUsernameInvalidAnimeList(self):
     self.session.anime_list()
 
-  @raises(myanimelist.anime_list.InvalidAnimeListError)
+  @raises(myanimelist.media_list.InvalidMediaListError)
   def testNonexistentUsernameInvalidAnimeList(self):
     self.session.anime_list(u'aspdoifpjsadoifjapodsijfp').load()
 
@@ -79,16 +80,17 @@ class testAnimeListClass(object):
 
   def testStats(self):
     assert isinstance(self.shal.stats, dict) and len(self.shal.stats) > 0
-    assert self.shal.stats[u'TV'] == 98 and self.shal.stats[u'OVA'] == 11 and self.shal.stats[u'Movies'] == 27 and self.shal.stats[u'Spcl.'] == 10 and self.shal.stats[u'Eps'] == 2239 and self.shal.stats[u'DL Eps'] == 266 and self.shal.stats[u'Days'] == 38.11 and self.shal.stats[u'Mean Score'] == 14.1 and self.shal.stats[u'Score Dev.'] == -9.1
+    print self.shal.stats
+    assert self.shal.stats[u'TV'] == 98 and self.shal.stats[u'OVA'] == 11 and self.shal.stats[u'Movies'] == 27 and self.shal.stats[u'Spcl.'] == 10 and self.shal.stats[u'Eps'] == 2239 and self.shal.stats[u'DL Eps'] == 266 and float(self.shal.stats[u'Days']) == 38.11 and float(self.shal.stats[u'Mean Score']) == 14.1 and float(self.shal.stats[u'Score Dev.']) == -9.1
 
     assert isinstance(self.pl.stats, dict) and len(self.pl.stats) > 0
-    assert self.pl.stats[u'TV'] >= 649 and self.pl.stats[u'OVA'] >= 47 and self.pl.stats[u'Movies'] >= 53 and self.pl.stats[u'Spcl.'] >= 35 and self.pl.stats[u'Eps'] >= 7522 and self.pl.stats[u'DL Eps'] >= 1010 and self.pl.stats[u'Days'] >= 125.91 and self.pl.stats[u'Mean Score'] > 0 and isinstance(self.pl.stats[u'Score Dev.'], float)
+    assert self.pl.stats[u'TV'] >= 649 and self.pl.stats[u'OVA'] >= 47 and self.pl.stats[u'Movies'] >= 53 and self.pl.stats[u'Spcl.'] >= 35 and self.pl.stats[u'Eps'] >= 7522 and self.pl.stats[u'DL Eps'] >= 1010 and self.pl.stats[u'Days'] >= 125.91 and self.pl.stats[u'Mean Score'] > 0
 
     assert isinstance(self.mona.stats, dict) and len(self.mona.stats) > 0
-    assert self.mona.stats[u'TV'] >= 849 and self.mona.stats[u'OVA'] >= 315 and self.mona.stats[u'Movies'] >= 265 and self.mona.stats[u'Spcl.'] >= 242 and self.mona.stats[u'Eps'] >= 26742 and self.mona.stats[u'DL Eps'] >= 98 and self.mona.stats[u'Days'] >= 443.21 and self.mona.stats[u'Mean Score'] > 0 and isinstance(self.mona.stats[u'Score Dev.'], float)
+    assert self.mona.stats[u'TV'] >= 849 and self.mona.stats[u'OVA'] >= 315 and self.mona.stats[u'Movies'] >= 265 and self.mona.stats[u'Spcl.'] >= 242 and self.mona.stats[u'Eps'] >= 26742 and self.mona.stats[u'DL Eps'] >= 98 and self.mona.stats[u'Days'] >= 443.21 and self.mona.stats[u'Mean Score'] > 0
 
     assert isinstance(self.threger.stats, dict) and len(self.threger.stats) > 0
-    assert self.threger.stats[u'TV'] == 0 and self.threger.stats[u'OVA'] == 0 and self.threger.stats[u'Movies'] == 0 and self.threger.stats[u'Spcl.'] == 0 and self.threger.stats[u'Eps'] == 0 and self.threger.stats[u'DL Eps'] == 0 and self.threger.stats[u'Days'] == 0 and self.threger.stats[u'Mean Score'] == 0.0 and self.threger.stats[u'Score Dev.'] == 0.0
+    assert self.threger.stats[u'TV'] == 0 and self.threger.stats[u'OVA'] == 0 and self.threger.stats[u'Movies'] == 0 and self.threger.stats[u'Spcl.'] == 0 and self.threger.stats[u'Eps'] == 0 and self.threger.stats[u'DL Eps'] == 0 and float(self.threger.stats[u'Days']) == 0 and float(self.threger.stats[u'Mean Score']) == 0.0 and float(self.threger.stats[u'Score Dev.']) == 0.0
 
   def testSection(self):
     assert isinstance(self.shal.section(u'Watching'), dict) and self.fz in self.shal.section(u'Watching')
