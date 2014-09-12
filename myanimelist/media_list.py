@@ -173,7 +173,7 @@ class MediaList(Base):
         curr_row = curr_row.findNext(u'table')
     return list_info
   def load(self):
-    media_list = self.session.session.get(u'http://myanimelist.net/' + self.type + u'list/' + utilities.urlencode(self.username)).text
+    media_list = self.session.session.get(u'http://myanimelist.net/' + self.type + u'list/' + utilities.urlencode(self.username) + '&' + urllib.urlencode({'status': 7, 'order': 0})).text
     self.set(self.parse(media_list))
     return self
 
