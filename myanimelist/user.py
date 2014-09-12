@@ -41,6 +41,19 @@ class InvalidUserError(Error):
 
 class User(Base):
   _id_attribute = "username"
+
+  @staticmethod
+  def find_username_from_user_id(session, user_id):
+    """
+      Given a user_id, return the corresponding MAL user's username.
+    """
+    comments_page = session.session.get(u'http://myanimelist.net/comments.php?' + urllib.urlencode({'id': int(user_id)})).text
+    comments_page = bs4.BeautifulSoup(comments_page)
+    username_elt = comments_page.find('h1')
+    if username_elt.text == u'' or username_elt.text == u'Invalid':
+      raise InvalidUserError(user_id, message="Invalid user ID given when looking up username")
+    return username_elt.text.replace("'s Comments", "")
+
   def __init__(self, session, username):
     super(User, self).__init__(session)
     self.username = username
@@ -560,7 +573,7 @@ class User(Base):
 
   def anime_list(self):
     return self.session.anime_list(self.username)
-    
+
   def manga_list(self):
     return self.session.manga_list(self.username)
     
