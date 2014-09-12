@@ -557,3 +557,10 @@ class User(Base):
   @loadable(u'load_friends')
   def friends(self):
     return self._friends
+
+  def anime_list(self):
+    return self.session.anime_list(self.username)
+    
+  def manga_list(self):
+    return self.session.manga_list(self.username)
+    
