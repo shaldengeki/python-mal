@@ -9,6 +9,7 @@ import person
 import user
 import club
 import anime_list
+import manga_list
 from base import Error
 
 class UnauthorizedError(Error):
@@ -71,5 +72,7 @@ class Session(object):
     return user.User(self, username)
   def anime_list(self, username):
     return anime_list.AnimeList(self, username)
+  def manga_list(self, username):
+    return manga_list.MangaList(self, username)
   def club(self, club_id):
     return club.Club(self, club_id)
