@@ -110,11 +110,11 @@ class MediaList(Base):
     column_names = {}
     for i,column in enumerate(columns):
       if column.text == u'#':
-        column_names['#'] = i
+        column_names[u'#'] = i
       elif u'Title' in column.text:
-        column_names['title'] = i
+        column_names[u'title'] = i
       elif u'Score' in column.text:
-        column_names['score'] = i
+        column_names[u'score'] = i
     return column_names    
 
   def parse(self, html, is_section=False):
