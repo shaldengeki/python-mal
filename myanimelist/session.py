@@ -8,6 +8,9 @@ import character
 import person
 import user
 import club
+import genre
+import tag
+import publication
 import anime_list
 import manga_list
 from base import Error
@@ -76,3 +79,9 @@ class Session(object):
     return manga_list.MangaList(self, username)
   def club(self, club_id):
     return club.Club(self, club_id)
+  def genre(self, genre_id):
+    return genre.Genre(self, genre_id)
+  def tag(self, tag_id):
+    return tag.Tag(self, tag_id)
+  def publication(self, publication_id):
+    return publication.Publication(self, publication_id)

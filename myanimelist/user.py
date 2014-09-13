@@ -57,7 +57,7 @@ class User(Base):
   def __init__(self, session, username):
     super(User, self).__init__(session)
     self.username = username
-    if not isinstance(self.username, basestring) or len(self.username) < 1:
+    if not isinstance(self.username, unicode) or len(self.username) < 1:
       raise InvalidUserError(self.username)
     self._picture = None
     self._favorite_anime = None
