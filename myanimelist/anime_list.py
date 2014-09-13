@@ -18,29 +18,35 @@ class AnimeList(media_list.MediaList):
   def verb(self):
     return "watch"
 
-  def parse_section_row(self, soup, status, column_names):
-    entry_info = super(AnimeList, self).parse_section_row(soup, status, column_names)
-    cols = soup.find_all(u'td')
+  def parse_entry_media_attributes(self, soup):
+    attributes = super(AnimeList, self).parse_entry_media_attributes(soup)
 
-    progress_parts = cols[column_names[u'progress']].text.split(u'/')
     try:
-      entry_info[u'episodes_watched'] = int(progress_parts[0])
+      attributes['episodes'] = int(soup.find('series_episodes').text)
+    except ValueError:
+      attributes['episodes'] = None
+
+    return attributes
+
+  def parse_entry(self, soup):
+    anime,entry_info = super(AnimeList, self).parse_entry(soup)
+
+    try:
+      entry_info[u'episodes_watched'] = int(soup.find('my_watched_episodes').text)
     except ValueError:
       entry_info[u'episodes_watched'] = 0
 
-    entry_info[u'tags'] = []
-    if u'tags' in column_names:
-      entry_info[u'tags'] = map(lambda x: x.text, cols[column_names[u'tags']].find_all(u'a'))
+    try:
+      entry_info[u'rewatching'] = bool(soup.find('my_rewatching').text)
+    except ValueError:
+      entry_info[u'rewatching'] = False
 
-    entry_info[u'started'] = None
-    if 'started' in column_names and cols[column_names[u'started']].text.strip() != u'':
-      entry_info[u'started'] = utilities.parse_profile_date(cols[column_names[u'started']].text)
+    try:
+      entry_info[u'episodes_rewatched'] = int(soup.find('my_rewatching_ep').text)
+    except ValueError:
+      entry_info[u'episodes_rewatched'] = 0
 
-    entry_info[u'finished'] = None
-    if 'finished' in column_names and cols[column_names[u'finished']].text.strip() != u'':
-      entry_info[u'finished'] = utilities.parse_profile_date(cols[column_names[u'finished']].text)
-
-    return entry_info
+    return anime,entry_info
 
   def parse_section_columns(self, columns):
     column_names = super(AnimeList, self).parse_section_columns(columns)

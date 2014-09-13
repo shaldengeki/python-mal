@@ -6,6 +6,7 @@ import re
 
 import utilities
 from base import Base, Error, loadable
+import media
 
 class MalformedMangaPageError(Error):
   def __init__(self, manga_id, html, message=None):
@@ -32,7 +33,14 @@ class InvalidMangaError(Error):
       "ID: " + unicode(self.manga_id)
     ])
 
-class Manga(Base):
+class Manga(media.Media):
+  status_terms = [
+    u'Unknown',
+    u'Publishing',
+    u'Finished',
+    u'Not yet published'
+  ]
+
   def __init__(self, session, manga_id):
     super(Manga, self).__init__(session)
     self.id = manga_id

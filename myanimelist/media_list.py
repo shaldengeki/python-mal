@@ -3,9 +3,8 @@
 
 import abc
 import bs4
-import collections
 import decimal
-import re
+import datetime
 import urllib
 
 import utilities
@@ -54,126 +53,141 @@ class MediaList(Base):
     self._list = None
     self._stats = None
 
-  # subclasses must define a list type, a list verb ala "watch", "read", etc, and a parser for the media list DOM.
+  # subclasses must define a list type, ala "anime" or "manga"
   @abc.abstractproperty
   def type(self):
     pass
 
+  # a list verb ala "watch", "read", etc
   @abc.abstractproperty
   def verb(self):
     pass
 
-  def load_large_list(self):
-    """
-      Loads each section of the media list separately.
-      This is necessary for users who have large media lists,
-      as MAL refuses to display the whole list at once.
-    """
-    statuses = [1, 2, 3, 4, 6]
-    section_results = []
-    for status in statuses:
-      media_list = self.session.session.get(u'http://myanimelist.net/' + self.type + u'list/' + utilities.urlencode(self.username) + u'&' + urllib.urlencode({'status': status, 'order': 0})).text
-      section_results.append(self.parse(media_list, is_section=True))
+  # a list with status ints as indices and status texts as values.
+  @property
+  def user_status_terms(self):
+    return [
+      u'Unknown',
+      self.verb.capitalize() + u'ing',
+      u'Completed',
+      u'On-Hold',
+      u'Dropped',
+      u'Unknown',
+      u'Plan to ' + self.verb.capitalize()
+    ]
 
-    # we have to do some finagling to get the correct combined stats.
-    stats_sum = sum((collections.Counter(d['stats']) for d in section_results), collections.Counter())
-    # weigh mean score, score dev by total number of entries in each section.
-    stats_sum['Mean Score'] = sum(d['stats']['Mean Score'] * len(d['list']) for d in section_results) / sum(len(d['list']) for d in section_results)
-    stats_sum['Score Dev.'] = sum(d['stats']['Score Dev.'] * len(d['list']) for d in section_results) / sum(len(d['list']) for d in section_results)
+  def parse_entry_media_attributes(self, soup):
+    """
+      Given:
+        soup: a bs4 element containing a row from the current media list
+      Return a dict of attributes of the media the row is about.
+    """
+    try:
+      start = utilities.parse_profile_date(soup.find('series_start').text)
+    except ValueError:
+      start = None
+    try:
+      end = utilities.parse_profile_date(soup.find('series_end').text)
+    except ValueError:
+      end = None
 
+    # look up the given media type's status terms.
+    status_terms = getattr(self.session, self.type)(1).status_terms
     return {
-      'list': {k: v for d in section_results for k,v in d['list'].iteritems()},
-      'stats': stats_sum
+      'id': int(soup.find('series_' + self.type + 'db_id').text),
+      'title': soup.find('series_title').text,
+      'status': status_terms[int(soup.find('series_status').text)],
+      'aired': (start,end),
+      'picture': soup.find('series_image').text
     }
 
-  def parse_section_row(self, soup, status, column_names):
+  def parse_entry(self, soup):
     """
       Given:
-        soup: a bs4 element containing the current media list's row
-        status: the section that this row belongs under
-      Return a dict of this row's parseable attributes.
+        soup: a bs4 element containing a row from the current media list
+      Return a tuple:
+        (media object, dict of this row's parseable attributes)
     """
-    cols = soup.find_all(u'td')
-    entry_info = {u'status': status}
+    # parse the media object first.
+    media_attrs = self.parse_entry_media_attributes(soup)
+    media_id = media_attrs[u'id']
+    del media_attrs[u'id']
+    media = getattr(self.session, self.type)(media_id).set(media_attrs)
+
+    entry_info = {}
     try:
-      entry_info[u'score'] = int(cols[column_names['score']].text)
+      entry_info[u'started'] = utilities.parse_profile_date(soup.find(u'my_start_date').text)
     except ValueError:
-      entry_info[u'score'] = None
-    return entry_info
+      entry_info[u'started'] = None
+    try:
+      entry_info[u'finished'] = utilities.parse_profile_date(soup.find(u'my_finish_date').text)
+    except ValueError:
+      entry_info[u'finished'] = None
 
-  def parse_section_columns(self, columns):
+    entry_info[u'status'] = self.user_status_terms[int(soup.find(u'my_status').text)]
+
+    entry_info[u'score'] = int(soup.find(u'my_score').text)
+    # if user hasn't set a score, set it to None to indicate as such.
+    if entry_info[u'score'] == 0:
+      entry_info[u'score'] = None
+
+    entry_info[u'last_updated'] = datetime.datetime.fromtimestamp(int(soup.find(u'my_last_updated').text))
+    return media,entry_info
+
+  def parse_stats(self, soup):
     """
       Given:
-        columns: a list of bs4 elements containing a media list section's header columns
-      Return a dict of table column names to column indices, for use in parse_section_row.
+        soup: a bs4 element containing the current media list's stats
+      Return a dict of this media list's stats.
     """
-    column_names = {}
-    for i,column in enumerate(columns):
-      if column.text == u'#':
-        column_names[u'#'] = i
-      elif u'Title' in column.text:
-        column_names[u'title'] = i
-      elif u'Score' in column.text:
-        column_names[u'score'] = i
-    return column_names    
+    stats = {}
+    for row in soup.children:
+      key = row.name.replace(u'user_', u'')
+      if key == u'id':
+        stats[key] = int(row.text)
+      elif key == u'name':
+        stats[key] = row.text
+      elif key == self.verb + u'ing':
+        stats[key] = int(row.text)
+      elif key == u'completed':
+        stats[key] = int(row.text)
+      elif key == u'onhold':
+        stats['on_hold'] = int(row.text)
+      elif key == u'dropped':
+        stats[key] = int(row.text)
+      elif key == u'planto' + self.verb:
+        stats[u'plan_to_' + self.verb] = int(row.text)
+      # for some reason, MAL doesn't substitute 'read' in for manga for the verb here
+      elif key == u'days_spent_watching':
+        stats[u'days_spent'] = decimal.Decimal(row.text)
+    return stats
 
-  def parse(self, html, is_section=False):
+  def parse(self, xml):
     list_info = {}
-    html = utilities.fix_bad_html(html)
-    list_page = bs4.BeautifulSoup(html)
+    list_page = bs4.BeautifulSoup(xml)
 
-    bad_username_elt = list_page.find('div', {'class': 'badresult'})
+    primary_elt = list_page.find('myanimelist')
+    if not primary_elt:
+      raise MalformedMediaListPageError(self.username, xml, message="Could not find root XML element in " + self.type + " list")
+
+    bad_username_elt = list_page.find('error')
     if bad_username_elt:
       raise InvalidMediaListError(self.username, message=u"Invalid username when fetching " + self.type + " list")
 
-    if is_section:
-      stats_elt = list_page.find('td', {'class': 'category_totals'})
-    else:
-      stats_elt = list_page.find('div', {'id': 'grand_totals'})
-
+    stats_elt = list_page.find('myinfo')
     if not stats_elt:
-      if u'disabled for lists' in list_page.text:
-        return self.load_large_list()
-      else:
-        raise MalformedMediaListPageError(self.username, html, message="Could not find section headers in " + self.type + " list")
+      raise MalformedMediaListPageError(self.username, html, message="Could not find stats element in " + self.type + " list")
 
-    list_info[u'stats'] = {}
-    stats_rows = stats_elt.text.strip().split('\n')
-    for row in stats_rows:
-      row = re.match(r'(?P<category>[A-Za-z\ \.]+): ?(?P<value>[0-9\,\-\.]*)?', row.lstrip()).groupdict()
-      row['value'] = row['value'].replace(',', '')
-      if '.' not in row['value']:
-        try:
-          row['value'] = int(row['value'])
-        except ValueError:
-          row['value'] = 0
-      else:
-        try:
-          row['value'] = decimal.Decimal(row['value'])
-        except ValueError:
-          row['value'] = 0.0
-      list_info[u'stats'][row['category']] = row['value']
+    list_info[u'stats'] = self.parse_stats(stats_elt)
 
     list_info[u'list'] = {}
-    headers = list_page.find_all(u'div', {'class': 'header_title'})
-    headers = map(lambda x: x.parent.parent.parent, headers)
-    for header in headers:
-      table_header = header.findNext(u'table')
-      table_header_cols = table_header.find_all(u'td', {'class': 'table_header'})
-      column_names = self.parse_section_columns(table_header_cols)
-
-      curr_row = table_header.findNext(u'table')
-      while not curr_row.find(u'td', {'class': 'category_totals'}):
-        cols = curr_row.find_all(u'td')
-        media_link = cols[column_names['title']].find(u'a', recursive=False)
-        link_parts = media_link.get(u'href').split(u'/')
-        # of the form: /anime|manga/15061/Aikatsu!
-        media = getattr(self.session, self.type)(int(link_parts[2])).set({'title': media_link.text})
-        list_info[u'list'][media] = self.parse_section_row(curr_row, header.text.strip(), column_names)
-        curr_row = curr_row.findNext(u'table')
+    for row in list_page.find_all(self.type):
+      (media, entry) = self.parse_entry(row)
+      list_info[u'list'][media] = entry
     return list_info
   def load(self):
-    media_list = self.session.session.get(u'http://myanimelist.net/' + self.type + u'list/' + utilities.urlencode(self.username) + '&' + urllib.urlencode({'status': 7, 'order': 0})).text
+
+    media_list = self.session.session.get(u'http://myanimelist.net/malappinfo.php?' + urllib.urlencode({'u': self.username, 'status': 'all', 'type': self.type})).text
     self.set(self.parse(media_list))
     return self
 

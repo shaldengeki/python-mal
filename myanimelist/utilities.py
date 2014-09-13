@@ -73,8 +73,21 @@ def parse_profile_date(text):
     return datetime.datetime.strptime(text, '%m-%d-%y, %I:%M %p')
   except ValueError:
     pass
+  # see if it's a date.
   try:
     return datetime.datetime.strptime(text, '%m-%d-%y').date()
+  except ValueError:
+    pass
+  try:
+    return datetime.datetime.strptime(text, '%Y-%m-%d').date()
+  except ValueError:
+    pass
+  try:
+    return datetime.datetime.strptime(text, '%Y-%m-00').date()
+  except ValueError:
+    pass
+  try:
+    return datetime.datetime.strptime(text, '%Y-00-00').date()
   except ValueError:
     pass
   try:
@@ -89,7 +102,6 @@ def parse_profile_date(text):
     return datetime.datetime.strptime(text, '%Y').date()
   except ValueError:
     pass
-  # see if it's a date.
   try:
     return datetime.datetime.strptime(text, '%b %d, %Y').date()
   except ValueError:

@@ -5,7 +5,8 @@ import bs4
 import re
 
 import utilities
-from base import Base, Error, loadable
+import media
+from base import Error, loadable
 
 class MalformedAnimePageError(Error):
   def __init__(self, anime_id, html, message=None):
@@ -32,7 +33,14 @@ class InvalidAnimeError(Error):
       "Anime ID: " + unicode(self.anime_id)
     ])
 
-class Anime(Base):
+class Anime(media.Media):
+  status_terms = [
+    u'Unknown',
+    u'Currently Airing',
+    u'Finished Airing',
+    u'Not yet aired'
+  ]
+
   @staticmethod
   def newest(session):
     '''

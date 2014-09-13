@@ -18,51 +18,42 @@ class MangaList(media_list.MediaList):
   def verb(self):
     return "read"
 
-  def parse_section_row(self, soup, status, column_names):
-    entry_info = super(MangaList, self).parse_section_row(soup, status, column_names)
-    cols = soup.find_all(u'td')
+  def parse_entry_media_attributes(self, soup):
+    attributes = super(MangaList, self).parse_entry_media_attributes(soup)
 
-    chapter_parts = cols[column_names[u'chapters']].text.split(u'/')
     try:
-      entry_info[u'chapters'] = int(chapter_parts[0])
+      attributes['chapters'] = int(soup.find('series_chapters').text)
     except ValueError:
-      entry_info[u'chapters'] = 0
+      attributes['chapters'] = None
 
-    volume_parts = cols[column_names[u'volumes']].text.split(u'/')
     try:
-      entry_info[u'volumes'] = int(volume_parts[0])
+      attributes['volumes'] = int(soup.find('series_volumes').text)
     except ValueError:
-      entry_info[u'volumes'] = 0
+      attributes['volumes'] = None
 
-    entry_info[u'tags'] = []
-    if 'tags' in column_names:
-      entry_info[u'tags'] = map(lambda x: x.text, cols[column_names[u'tags']].find_all(u'a'))
+    return attributes
 
-    entry_info[u'priority'] = None
-    if 'priority' in column_names:
-      entry_info[u'priority'] = cols[column_names[u'priority']].text
+  def parse_entry(self, soup):
+    manga,entry_info = super(MangaList, self).parse_entry(soup)
 
-    entry_info[u'started'] = None
-    if 'started' in column_names and cols[column_names[u'started']].text.strip() != u'':
-      entry_info[u'started'] = utilities.parse_profile_date(cols[column_names[u'started']].text)
-    entry_info[u'finished'] = None
-    if 'finished' in column_names and cols[column_names[u'finished']].text.strip() != u'':
-      entry_info[u'finished'] = utilities.parse_profile_date(cols[column_names[u'finished']].text)
-    return entry_info
+    try:
+      entry_info[u'chapters_read'] = int(soup.find('my_read_chapters').text)
+    except ValueError:
+      entry_info[u'chapters_read'] = 0
 
-  def parse_section_columns(self, columns):
-    column_names = super(MangaList, self).parse_section_columns(columns)
-    for i,column in enumerate(columns):
-      if u'Chapters' in column.text:
-        column_names[u'chapters'] = i
-      elif u'Volumes' in column.text:
-        column_names[u'volumes'] = i
-      elif u'Tags' in column.text:
-        column_names[u'tags'] = i
-      elif u'Priority' in column.text:
-        column_names[u'priority'] = i
-      elif u'Started' in column.text:
-        column_names[u'started'] = i
-      elif u'Finished' in column.text:
-        column_names[u'finished'] = i
-    return column_names
+    try:
+      entry_info[u'volumes_read'] = int(soup.find('my_read_volumes').text)
+    except ValueError:
+      entry_info[u'volumes_read'] = 0
+
+    try:
+      entry_info[u'rereading'] = bool(soup.find('my_rereadingg').text)
+    except ValueError:
+      entry_info[u'rereading'] = False
+
+    try:
+      entry_info[u'chapters_reread'] = int(soup.find('my_rereading_chap').text)
+    except ValueError:
+      entry_info[u'chapters_reread'] = 0
+
+    return manga,entry_info
