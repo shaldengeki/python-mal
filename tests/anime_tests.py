@@ -104,7 +104,6 @@ class testAnimeClass(object):
 
   def testDuration(self):
     assert self.spicy_wolf.duration == 24
-    print self.totoro.duration
     assert self.totoro.duration == 86
     assert self.space_dandy.duration == 24
     assert self.bebop.duration == 24

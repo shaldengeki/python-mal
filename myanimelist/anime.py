@@ -166,9 +166,15 @@ class Anime(media.Media):
     utilities.extract_tags(producers_tag.find_all(u'sup'))
     anime_info[u'producers'] = producers_tag.text.strip().split(u', ')
 
+    # TODO: make this contain myanimelist.genre objects
     genres_tag = producers_tag.find_next_sibling(u'div')
     utilities.extract_tags(genres_tag.find_all(u'span', {'class': 'dark_text'}))
-    anime_info[u'genres'] = genres_tag.text.strip().split(u', ')
+    anime_info[u'genres'] = []
+    for genre_link in genres_tag.find_all('a'):
+      link_parts = genre_link.get('href').split('[]=')
+      # of the form /anime|manga.php?genre[]=1
+      genre = self.session.genre(int(link_parts[1])).set({'name': genre_link.text})
+      anime_info[u'genres'].append(genre)
 
     duration_tag = genres_tag.find_next_sibling(u'div')
     utilities.extract_tags(duration_tag.find_all(u'span', {'class': 'dark_text'}))
