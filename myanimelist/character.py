@@ -70,7 +70,7 @@ class Character(Base):
     info_panel_first = character_page.find(u'div', {'id': 'content'}).find(u'table').find(u'td')
 
     picture_tag = info_panel_first.find(u'img')
-    character_info[u'picture'] = picture_tag.get(u'src')
+    character_info[u'picture'] = picture_tag.get(u'src').decode('utf-8')
 
     # assemble animeography for this character.
     character_info[u'animeography'] = {}
@@ -186,7 +186,7 @@ class Character(Base):
     picture_table = second_col.find(u'table', recursive=False)
     character_info[u'pictures'] = []
     if picture_table:
-      character_info[u'pictures'] = map(lambda img: img.get(u'src'), picture_table.find_all(u'img'))
+      character_info[u'pictures'] = map(lambda img: img.get(u'src').decode('utf-8'), picture_table.find_all(u'img'))
     return character_info
 
   def parse_clubs(self, html):

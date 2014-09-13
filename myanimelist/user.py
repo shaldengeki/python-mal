@@ -99,7 +99,7 @@ class User(Base):
     info_panel_first = user_page.find(u'div', {u'id': u'content'}).find(u'table').find(u'td')
 
     picture_tag = info_panel_first.find(u'img')
-    user_info[u'picture'] = picture_tag.get(u'src')
+    user_info[u'picture'] = picture_tag.get(u'src').decode('utf-8')
 
     # the user ID is always present in the blogfeed link.
     all_comments_link = info_panel_first.find(u'a', text=u'Blog Feed')

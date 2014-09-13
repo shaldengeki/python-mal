@@ -107,7 +107,7 @@ class Anime(media.Media):
     info_panel_first = anime_page.find(u'div', {'id': 'content'}).find(u'table').find(u'td')
 
     picture_tag = info_panel_first.find(u'img')
-    anime_info[u'picture'] = picture_tag.get(u'src')
+    anime_info[u'picture'] = picture_tag.get(u'src').decode('utf-8')
 
     # assemble alternative titles for this series.
     anime_info[u'alternative_titles'] = {}
