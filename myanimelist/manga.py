@@ -1,10 +1,5 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-
-import bs4
-import decimal
-import re
-
 import utilities
 from base import Base, Error, loadable
 import media
@@ -29,7 +24,7 @@ class Manga(media.Media):
       Returns the newest manga on MAL.
     '''
     p = session.session.get(u'http://myanimelist.net/manga.php?o=9&c[]=a&c[]=d&cv=2&w=1').text
-    soup = bs4.BeautifulSoup(p)
+    soup = utilities.get_clean_dom(p)
     latest_entry = soup.find(u"div", {u"class": u"hoverinfo"})
     if not latest_entry:
       raise MalformedMangaPageError(0, p, u"No manga entries found on recently-added page")
@@ -71,12 +66,10 @@ class Manga(media.Media):
     self._status_stats = None
     self._characters = None
 
-  def parse_sidebar(self, html):
+  def parse_sidebar(self, manga_page):
     """
-      Given a MAL manga page's HTML, returns a dict with this manga's attributes found on the sidebar.
+      Given a BeautifulSoup object containing a MAL manga page's DOM, returns a dict with this manga's attributes found on the sidebar.
     """
-    manga_page = bs4.BeautifulSoup(html)
-
     # if MAL says the series doesn't exist, raise an InvalidMangaError.
     error_tag = manga_page.find(u'div', {'class': 'badresult'})
     if error_tag:
@@ -85,10 +78,10 @@ class Manga(media.Media):
     title_tag = manga_page.find(u'div', {'id': 'contentWrapper'}).find(u'h1')
     if not title_tag.find(u'div'):
       # otherwise, raise a MalformedMangaPageError.
-      raise MalformedMangaPageError(self.id, html, message="Could not find title div")
+      raise MalformedMangaPageError(self.id, manga_page, message="Could not find title div")
 
     # otherwise, begin parsing.
-    manga_info = super(Manga, self).parse_sidebar(html)
+    manga_info = super(Manga, self).parse_sidebar(manga_page)
 
     info_panel_first = manga_page.find(u'div', {'id': 'content'}).find(u'table').find(u'td')
 
@@ -145,71 +138,12 @@ class Manga(media.Media):
       manga_info[u'serialization'] = self.session.publication(int(link_parts[1])).set({'name': publication_link.text})
 
     return manga_info
-  def parse(self, html):
-    """
-      Given a MAL anime page's HTML, returns a dict with this anime's attributes.
-    """
-    manga_info = self.parse_sidebar(html)
-    manga_page = bs4.BeautifulSoup(html)
 
-    synopsis_elt = manga_page.find(u'h2', text=u'Synopsis').parent
-    utilities.extract_tags(synopsis_elt.find_all(u'h2'))
-    manga_info[u'synopsis'] = synopsis_elt.text.strip()
-
-    related_title = manga_page.find(u'h2', text=u'Related Manga')
-    if related_title:
-      related_elt = related_title.parent
-      utilities.extract_tags(related_elt.find_all(u'h2'))
-      related = {}
-      for link in related_elt.find_all(u'a'):
-        href = link.get(u'href').replace(u'http://myanimelist.net', '')
-        if not re.match(r'/(anime|manga)', href):
-          break
-        curr_elt = link.previous_sibling
-        if curr_elt is None:
-          # we've reached the end of the list.
-          break
-        related_type = None
-        while True:
-          if not curr_elt:
-            raise MalformedMangaPageError(self.id, related_elt, message="Prematurely reached end of related manga listing")
-          if isinstance(curr_elt, bs4.NavigableString):
-            type_match = re.match(u'(?P<type>[a-zA-Z\ \-]+):', curr_elt)
-            if type_match:
-              related_type = type_match.group(u'type')
-              break
-          curr_elt = curr_elt.previous_sibling
-        # parse link: may be manga or anime.
-        href_parts = href.split(u'/')
-        title = link.text
-
-        # sometimes links on MAL are broken, of the form /manga//
-        if href_parts[2] == '':
-          continue
-        obj_id = int(href_parts[2])
-        non_title_parts = href_parts[:3]
-        if 'manga' in non_title_parts:
-          new_obj = self.session.manga(obj_id).set({'title': title})
-        elif 'anime' in non_title_parts:
-          new_obj = self.session.anime(obj_id).set({'title': title})
-        else:
-          raise MalformedMangaPageError(self.id, link, message="Related thing is of unknown type")
-        if related_type not in related:
-          related[related_type] = [new_obj]
-        else:
-          related[related_type].append(new_obj)
-      manga_info[u'related'] = related
-    else:
-      manga_info[u'related'] = None
-    return manga_info
-
-  def parse_characters(self, html):
+  def parse_characters(self, character_page):
     """
-      Given a MAL manga's character page HTML, return a dict with this manga's character attributes.
+      Given a BeautifulSoup object containing a MAL manga's character page DOM, return a dict with this manga's character attributes.
     """
-    html = utilities.fix_bad_html(html)
-    manga_info = self.parse_sidebar(html)
-    character_page = bs4.BeautifulSoup(html)
+    manga_info = self.parse_sidebar(character_page)
     character_title = filter(lambda x: 'Characters' in x.text, character_page.find_all(u'h2'))
     manga_info[u'characters'] = {}
     if character_title:
@@ -229,12 +163,11 @@ class Manga(media.Media):
         curr_elt = curr_elt.find_next_sibling(u'table')
     return manga_info
 
-  def parse_stats(self, html):
+  def parse_stats(self, manga_page):
     """
       Given a MAL manga stats page's HTML, returns a dict with this manga's attributes.
     """
-    manga_info = self.parse_sidebar(html)
-    manga_page = bs4.BeautifulSoup(html)
+    manga_info = self.parse_sidebar(manga_page)
 
     status_stats = {
       'watching': 0,
@@ -294,7 +227,7 @@ class Manga(media.Media):
       Fetches the MAL manga page and sets the current manga's attributes.
     """
     manga_page = self.session.session.get(u'http://myanimelist.net/manga/' + str(self.id)).text
-    self.set(self.parse(manga_page))
+    self.set(self.parse(utilities.get_clean_dom(manga_page)))
     return self
 
   def load_characters(self):
@@ -302,7 +235,7 @@ class Manga(media.Media):
       Fetches the MAL manga's characters page and sets the current manga's attributes.
     """
     characters_page = self.session.session.get(u'http://myanimelist.net/manga/' + str(self.id) + u'/' + utilities.urlencode(self.title) + u'/characters').text
-    self.set(self.parse_characters(characters_page))
+    self.set(self.parse_characters(utilities.get_clean_dom(characters_page)))
     return self
     
   def load_stats(self):
@@ -310,7 +243,7 @@ class Manga(media.Media):
       Fetches the MAL manga stats page and sets the current manga's attributes.
     """
     stats_page = self.session.session.get(u'http://myanimelist.net/manga/' + str(self.id) + u'/' + utilities.urlencode(self.title) + u'/stats').text
-    self.set(self.parse_stats(stats_page))
+    self.set(self.parse_stats(utilities.get_clean_dom(stats_page)))
     return self
 
   @property

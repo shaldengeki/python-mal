@@ -1,7 +1,5 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-
-import bs4
 import re
 
 import utilities
@@ -27,7 +25,7 @@ class Anime(media.Media):
       Returns the newest anime on MAL.
     '''
     p = session.session.get(u'http://myanimelist.net/anime.php?o=9&c[]=a&c[]=d&cv=2&w=1').text
-    soup = bs4.BeautifulSoup(p)
+    soup = utilities.get_clean_dom(p)
     latest_entry = soup.find(u"div", {u"class": u"hoverinfo"})
     if not latest_entry:
       raise MalformedAnimePageError(0, p, u"No anime entries found on recently-added page")
@@ -64,12 +62,10 @@ class Anime(media.Media):
     self._voice_actors = None
     self._staff = None
 
-  def parse_sidebar(self, html):
+  def parse_sidebar(self, anime_page):
     """
       Given a MAL anime page's HTML, returns a dict with this anime's attributes found on the sidebar.
     """
-    anime_page = bs4.BeautifulSoup(html)
-
     # if MAL says the series doesn't exist, raise an InvalidAnimeError.
     error_tag = anime_page.find(u'div', {'class': 'badresult'})
     if error_tag:
@@ -78,9 +74,9 @@ class Anime(media.Media):
     title_tag = anime_page.find(u'div', {'id': 'contentWrapper'}).find(u'h1')
     if not title_tag.find(u'div'):
       # otherwise, raise a MalformedAnimePageError.
-      raise MalformedAnimePageError(self.id, html, message="Could not find title div")
+      raise MalformedAnimePageError(self.id, anime_page, message="Could not find title div")
 
-    anime_info = super(Anime, self).parse_sidebar(html)
+    anime_info = super(Anime, self).parse_sidebar(anime_page)
     info_panel_first = anime_page.find(u'div', {'id': 'content'}).find(u'table').find(u'td')
 
     episode_tag = info_panel_first.find(text=u'Episodes:').parent.parent
@@ -136,70 +132,12 @@ class Anime(media.Media):
 
     return anime_info    
 
-  def parse(self, html):
-    """
-      Given a MAL anime page's HTML, returns a dict with this anime's attributes.
-    """
-    anime_info = self.parse_sidebar(html)
-    anime_page = bs4.BeautifulSoup(html)
-
-    synopsis_elt = anime_page.find(u'h2', text=u'Synopsis').parent
-    utilities.extract_tags(synopsis_elt.find_all(u'h2'))
-    anime_info[u'synopsis'] = synopsis_elt.text.strip()
-
-    related_title = anime_page.find(u'h2', text=u'Related Anime')
-    if related_title:
-      related_elt = related_title.parent
-      utilities.extract_tags(related_elt.find_all(u'h2'))
-      related = {}
-      for link in related_elt.find_all(u'a'):
-        href = link.get(u'href').replace(u'http://myanimelist.net', '')
-        if not re.match(r'/(anime|manga)', href):
-          break
-        curr_elt = link.previous_sibling
-        if curr_elt is None:
-          # we've reached the end of the list.
-          break
-        related_type = None
-        while True:
-          if not curr_elt:
-            raise MalformedAnimePageError(self.id, related_elt, message="Prematurely reached end of related anime listing")
-          if isinstance(curr_elt, bs4.NavigableString):
-            type_match = re.match(u'(?P<type>[a-zA-Z\ \-]+):', curr_elt)
-            if type_match:
-              related_type = type_match.group(u'type')
-              break
-          curr_elt = curr_elt.previous_sibling
-        # parse link: may be manga or anime.
-        href_parts = href.split(u'/')
-        title = link.text
-
-        # sometimes links on MAL are broken, of the form /anime//
-        if href_parts[2] == '':
-          continue
-        obj_id = int(href_parts[2])
-        non_title_parts = href_parts[:3]
-        if 'manga' in non_title_parts:
-          new_obj = self.session.manga(obj_id).set({'title': title})
-        elif 'anime' in non_title_parts:
-          new_obj = self.session.anime(obj_id).set({'title': title})
-        else:
-          raise MalformedAnimePageError(self.id, link, message="Related thing is of unknown type")
-        if related_type not in related:
-          related[related_type] = [new_obj]
-        else:
-          related[related_type].append(new_obj)
-      anime_info[u'related'] = related
-    else:
-      anime_info[u'related'] = None
-    return anime_info
-
-  def parse_characters(self, html):
+  def parse_characters(self, character_page):
     """
       Given a MAL anime's character page HTML, return a dict with this anime's character/staff/va attributes.
     """
-    anime_info = self.parse_sidebar(html)
-    character_page = bs4.BeautifulSoup(html)
+    anime_info = self.parse_sidebar(character_page)
+
     character_title = filter(lambda x: 'Characters & Voice Actors' in x.text, character_page.find_all(u'h2'))
     anime_info[u'characters'] = {}
     anime_info[u'voice_actors'] = {}
@@ -258,13 +196,11 @@ class Anime(media.Media):
         anime_info[u'staff'][person] = set(info.find(u'small').text.split(u', '))
     return anime_info
 
-  def parse_stats(self, html):
+  def parse_stats(self, anime_page):
     """
       Given a MAL anime stats page's HTML, returns a dict with this anime's attributes.
     """
-    anime_info = self.parse_sidebar(html)
-    anime_page = bs4.BeautifulSoup(html)
-
+    anime_info = self.parse_sidebar(anime_page)
     status_stats = {
       'watching': 0,
       'completed': 0,
@@ -323,7 +259,7 @@ class Anime(media.Media):
       Fetches the MAL anime page and sets the current anime's attributes.
     """
     anime_page = self.session.session.get(u'http://myanimelist.net/anime/' + str(self.id)).text
-    self.set(self.parse(anime_page))
+    self.set(self.parse(utilities.get_clean_dom(anime_page)))
     return self
 
   def load_characters(self):
@@ -331,7 +267,7 @@ class Anime(media.Media):
       Fetches the MAL anime's characters page and sets the current anime's attributes.
     """
     characters_page = self.session.session.get(u'http://myanimelist.net/anime/' + str(self.id) + u'/' + utilities.urlencode(self.title) + u'/characters').text
-    self.set(self.parse_characters(characters_page))
+    self.set(self.parse_characters(utilities.get_clean_dom(characters_page)))
     return self
     
   def load_stats(self):
@@ -339,7 +275,7 @@ class Anime(media.Media):
       Fetches the MAL anime stats page and sets the current anime's attributes.
     """
     stats_page = self.session.session.get(u'http://myanimelist.net/anime/' + str(self.id) + u'/' + utilities.urlencode(self.title) + u'/stats').text
-    self.set(self.parse_stats(stats_page))
+    self.set(self.parse_stats(utilities.get_clean_dom(stats_page)))
     return self
 
   @property

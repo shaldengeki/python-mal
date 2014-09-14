@@ -46,12 +46,11 @@ class Media(Base):
   def status_terms(self):
     pass
 
-  def parse_sidebar(self, html):
+  def parse_sidebar(self, media_page):
     """
-      Given a MAL media page's HTML, returns a dict with this media's attributes found on the sidebar.
+      Given a BeautifulSoup object containing MAL media page's DOM, returns a dict with this media's attributes found on the sidebar.
     """
     media_info = {}
-    media_page = bs4.BeautifulSoup(utilities.fix_bad_html(html))
 
     # if MAL says the series doesn't exist, raise an InvalidMediaError.
     error_tag = media_page.find(u'div', {'class': 'badresult'})
@@ -61,7 +60,7 @@ class Media(Base):
     title_tag = media_page.find(u'div', {'id': 'contentWrapper'}).find(u'h1')
     if not title_tag.find(u'div'):
       # otherwise, raise a MalformedMediaPageError.
-      raise MalformedMediaPageError(self.id, html, message="Could not find title div")
+      raise MalformedMediaPageError(self.id, media_page, message="Could not find title div")
 
     utilities.extract_tags(title_tag.find_all())
     media_info[u'title'] = title_tag.text.strip()
@@ -139,3 +138,53 @@ class Media(Base):
 
     return media_info
 
+  def parse(self, media_page):
+    """
+      Given a BeautifulSoup object containing a MAL media page's DOM, returns a dict with this media's attributes.
+    """
+    media_info = self.parse_sidebar(media_page)
+
+    synopsis_elt = media_page.find(u'h2', text=u'Synopsis').parent
+    utilities.extract_tags(synopsis_elt.find_all(u'h2'))
+    media_info[u'synopsis'] = synopsis_elt.text.strip()
+
+    related_title = media_page.find(u'h2', text=u'Related ' + self.__class__.__name__)
+    if related_title:
+      related_elt = related_title.parent
+      utilities.extract_tags(related_elt.find_all(u'h2'))
+      related = {}
+      for link in related_elt.find_all(u'a'):
+        href = link.get(u'href').replace(u'http://myanimelist.net', '')
+        if not re.match(r'/(anime|manga)', href):
+          break
+        curr_elt = link.previous_sibling
+        if curr_elt is None:
+          # we've reached the end of the list.
+          break
+        related_type = None
+        while True:
+          if not curr_elt:
+            raise MalformedAnimePageError(self.id, related_elt, message="Prematurely reached end of related anime listing")
+          if isinstance(curr_elt, bs4.NavigableString):
+            type_match = re.match(u'(?P<type>[a-zA-Z\ \-]+):', curr_elt)
+            if type_match:
+              related_type = type_match.group(u'type')
+              break
+          curr_elt = curr_elt.previous_sibling
+        title = link.text
+        # parse link: may be manga or anime.
+        href_parts = href.split(u'/')
+        # sometimes links on MAL are broken, of the form /anime//
+        if href_parts[2] == '':
+          continue
+        # of the form: /(anime|manga)/1/Cowboy_Bebop
+        obj_id = int(href_parts[2])
+        new_obj = getattr(self.session, href_parts[1])(obj_id).set({'title': title})
+        if related_type not in related:
+          related[related_type] = [new_obj]
+        else:
+          related[related_type].append(new_obj)
+      media_info[u'related'] = related
+    else:
+      media_info[u'related'] = None
+    return media_info

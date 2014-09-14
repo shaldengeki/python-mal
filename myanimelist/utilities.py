@@ -1,5 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
+import bs4
 import datetime
 import re
 import urllib
@@ -28,6 +29,12 @@ def fix_bad_html(html):
     return """<a href="/character/""" + match.group(u'char_link') + """">""" + match.group(u'char_name') + """</a>\n\t\t\t<div class="spaceit_pad"><small>""" + match.group(u'role') + """</small></div>"""
   html = re.sub(r"""<a href="/character/(?P<char_link>[^"]+)">(?P<char_name>[^<]+)</a>\n\t\t\t<div class="spaceit_pad"><small>(?P<role>[A-Za-z ]+)</small></div>\n\t\t\t</div>""", manga_character_double_closed_div_character, html)
   return html
+
+def get_clean_dom(html):
+  """
+    Given raw HTML from a MAL page, return a BeautifulSoup object with cleaned HTML.
+  """
+  return bs4.BeautifulSoup(fix_bad_html(html))
 
 def urlencode(url):
   """

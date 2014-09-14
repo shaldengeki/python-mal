@@ -1,7 +1,10 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 import abc
+import bs4
 import functools
+
+import utilities
 
 class Error(Exception):
   def __init__(self, message=None):
