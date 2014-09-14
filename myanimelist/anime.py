@@ -18,6 +18,7 @@ class Anime(media.Media):
     u'Finished Airing',
     u'Not yet aired'
   ]
+  consuming_verb = "watch"
 
   @staticmethod
   def newest(session):
@@ -33,32 +34,14 @@ class Anime(media.Media):
     return Anime(session, latest_id)
 
   def __init__(self, session, anime_id):
-    super(Anime, self).__init__(session)
-    self.id = anime_id
-    if not isinstance(self.id, int) or int(self.id) < 1:
-      raise InvalidAnimeError(self.id)
-    self._title = None
-    self._picture = None
-    self._alternative_titles = None
-    self._type = None
+    if not isinstance(anime_id, int) or int(anime_id) < 1:
+      raise InvalidAnimeError(anime_id)
+    super(Anime, self).__init__(session, anime_id)
     self._episodes = None
-    self._status = None
     self._aired = None
     self._producers = None
-    self._genres = None
     self._duration = None
     self._rating = None
-    self._score = None
-    self._rank = None
-    self._popularity = None
-    self._members = None
-    self._favorites = None
-    self._tags = None
-    self._synopsis = None
-    self._related = None
-    self._score_stats = None
-    self._status_stats = None
-    self._characters = None
     self._voice_actors = None
     self._staff = None
 
@@ -195,118 +178,11 @@ class Anime(media.Media):
         # staff role(s).
         anime_info[u'staff'][person] = set(info.find(u'small').text.split(u', '))
     return anime_info
-
-  def parse_stats(self, anime_page):
-    """
-      Given a BeautifulSoup object containing a MAL anime stats page's DOM, returns a dict with this anime's attributes.
-    """
-    anime_info = self.parse_sidebar(anime_page)
-    status_stats = {
-      'watching': 0,
-      'completed': 0,
-      'on_hold': 0,
-      'dropped': 0,
-      'plan_to_watch': 0
-    }
-    watching_elt = anime_page.find(u'span', {'class': 'dark_text'}, text="Watching:")
-    if watching_elt:
-      status_stats[u'watching'] = int(watching_elt.nextSibling.strip().replace(u',', ''))
-
-    completed_elt = anime_page.find(u'span', {'class': 'dark_text'}, text="Completed:")
-    if completed_elt:
-      status_stats[u'completed'] = int(completed_elt.nextSibling.strip().replace(u',', ''))
-
-    on_hold_elt = anime_page.find(u'span', {'class': 'dark_text'}, text="On-Hold:")
-    if on_hold_elt:
-      status_stats[u'on_hold'] = int(on_hold_elt.nextSibling.strip().replace(u',', ''))
-
-    dropped_elt = anime_page.find(u'span', {'class': 'dark_text'}, text="Dropped:")
-    if dropped_elt:
-      status_stats[u'dropped'] = int(dropped_elt.nextSibling.strip().replace(u',', ''))
-
-    plan_to_watch_elt = anime_page.find(u'span', {'class': 'dark_text'}, text="Plan to Watch:")
-    if plan_to_watch_elt:
-      status_stats[u'plan_to_watch'] = int(plan_to_watch_elt.nextSibling.strip().replace(u',', ''))
-    anime_info[u'status_stats'] = status_stats
-
-    score_stats_header = anime_page.find(u'h2', text='Score Stats')
-    score_stats = {
-      1: 0,
-      2: 0,
-      3: 0,
-      4: 0,
-      5: 0,
-      6: 0,
-      7: 0,
-      8: 0,
-      9: 0,
-      10: 0
-    }
-    if score_stats_header:
-      score_stats_table = score_stats_header.find_next_sibling(u'table')
-      if score_stats_table:
-        score_stats = {}
-        score_rows = score_stats_table.find_all(u'tr')
-        for i in xrange(len(score_rows)):
-          score_value = int(score_rows[i].find(u'td').text)
-          score_stats[score_value] = int(score_rows[i].find(u'small').text.replace(u'(u', '').replace(u' votes)', ''))
-    anime_info[u'score_stats'] = score_stats
-
-    return anime_info
-
-  def load(self):
-    """
-      Fetches the MAL anime page and sets the current anime's attributes.
-    """
-    anime_page = self.session.session.get(u'http://myanimelist.net/anime/' + str(self.id)).text
-    self.set(self.parse(utilities.get_clean_dom(anime_page)))
-    return self
-
-  def load_characters(self):
-    """
-      Fetches the MAL anime's characters page and sets the current anime's attributes.
-    """
-    characters_page = self.session.session.get(u'http://myanimelist.net/anime/' + str(self.id) + u'/' + utilities.urlencode(self.title) + u'/characters').text
-    self.set(self.parse_characters(utilities.get_clean_dom(characters_page)))
-    return self
     
-  def load_stats(self):
-    """
-      Fetches the MAL anime stats page and sets the current anime's attributes.
-    """
-    stats_page = self.session.session.get(u'http://myanimelist.net/anime/' + str(self.id) + u'/' + utilities.urlencode(self.title) + u'/stats').text
-    self.set(self.parse_stats(utilities.get_clean_dom(stats_page)))
-    return self
-
-  @property
-  @loadable(u'load')
-  def title(self):
-    return self._title
-
-  @property
-  @loadable(u'load')
-  def picture(self):
-    return self._picture
-
-  @property
-  @loadable(u'load')
-  def alternative_titles(self):
-    return self._alternative_titles
-
-  @property
-  @loadable(u'load')
-  def type(self):
-    return self._type
-
   @property
   @loadable(u'load')
   def episodes(self):
     return self._episodes
-
-  @property
-  @loadable(u'load')
-  def status(self):
-    return self._status
 
   @property
   @loadable(u'load')
@@ -320,11 +196,6 @@ class Anime(media.Media):
 
   @property
   @loadable(u'load')
-  def genres(self):
-    return self._genres
-
-  @property
-  @loadable(u'load')
   def duration(self):
     return self._duration
 
@@ -332,51 +203,6 @@ class Anime(media.Media):
   @loadable(u'load')
   def rating(self):
     return self._rating
-
-  @property
-  @loadable(u'load')
-  def score(self):
-    return self._score
-
-  @property
-  @loadable(u'load')
-  def rank(self):
-    return self._rank
-
-  @property
-  @loadable(u'load')
-  def popularity(self):
-    return self._popularity
-
-  @property
-  @loadable(u'load')
-  def members(self):
-    return self._members
-
-  @property
-  @loadable(u'load')
-  def favorites(self):
-    return self._favorites
-
-  @property
-  @loadable(u'load')
-  def tags(self):
-    return self._tags
-  
-  @property
-  @loadable(u'load')
-  def synopsis(self):
-    return self._synopsis
-
-  @property
-  @loadable(u'load')
-  def related(self):
-    return self._related
-
-  @property
-  @loadable(u'load_characters')
-  def characters(self):
-    return self._characters
 
   @property
   @loadable(u'load_characters')
@@ -387,13 +213,3 @@ class Anime(media.Media):
   @loadable(u'load_characters')
   def staff(self):
     return self._staff  
-
-  @property
-  @loadable(u'load_stats')
-  def status_stats(self):
-    return self._status_stats
-
-  @property
-  @loadable(u'load_stats')
-  def score_stats(self):
-    return self._score_stats

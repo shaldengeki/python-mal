@@ -7,7 +7,7 @@ import decimal
 import re
 
 import utilities
-from base import Base, Error
+from base import Base, Error, loadable
 
 class MalformedMediaPageError(Error):
   def __init__(self, media_id, html, message=None):
@@ -45,6 +45,34 @@ class Media(Base):
   @abc.abstractproperty
   def status_terms(self):
     pass
+
+  # a string, containing the verb used to consume this media, e.g. "read"
+  @abc.abstractproperty
+  def consuming_verb(self):
+    pass
+
+  def __init__(self, session, id):
+    super(Media, self).__init__(session)
+    self.id = id
+    if not isinstance(self.id, int) or int(self.id) < 1:
+      raise InvalidMediaError(self.id)
+    self._title = None
+    self._picture = None
+    self._alternative_titles = None
+    self._type = None
+    self._status = None
+    self._genres = None
+    self._score = None
+    self._rank = None
+    self._popularity = None
+    self._members = None
+    self._favorites = None
+    self._popular_tags = None
+    self._synopsis = None
+    self._related = None
+    self._characters = None
+    self._score_stats = None
+    self._status_stats = None
 
   def parse_sidebar(self, media_page):
     """
@@ -188,3 +216,195 @@ class Media(Base):
     else:
       media_info[u'related'] = None
     return media_info
+
+  def parse_stats(self, anime_page):
+    """
+      Given a BeautifulSoup object containing a MAL media stats page's DOM, returns a dict with this media's attributes.
+    """
+    media_info = self.parse_sidebar(media_page)
+    verb_progressive = self.consuming_verb + u'ing'
+    status_stats = {
+      verb_progressive: 0,
+      'completed': 0,
+      'on_hold': 0,
+      'dropped': 0,
+      'plan_to_' + self.consuming_verb: 0
+    }
+    consuming_elt = media_page.find(u'span', {'class': 'dark_text'}, text=verb_progressive.capitalize())
+    if consuming_elt:
+      status_stats[verb_progressive] = int(consuming_elt.nextSibling.strip().replace(u',', ''))
+
+    completed_elt = media_page.find(u'span', {'class': 'dark_text'}, text="Completed:")
+    if completed_elt:
+      status_stats[u'completed'] = int(completed_elt.nextSibling.strip().replace(u',', ''))
+
+    on_hold_elt = media_page.find(u'span', {'class': 'dark_text'}, text="On-Hold:")
+    if on_hold_elt:
+      status_stats[u'on_hold'] = int(on_hold_elt.nextSibling.strip().replace(u',', ''))
+
+    dropped_elt = media_page.find(u'span', {'class': 'dark_text'}, text="Dropped:")
+    if dropped_elt:
+      status_stats[u'dropped'] = int(dropped_elt.nextSibling.strip().replace(u',', ''))
+
+    planning_elt = media_page.find(u'span', {'class': 'dark_text'}, text="Plan to " + self.consuming_verb.capitalize() + ":")
+    if planning_elt:
+      status_stats[u'plan_to_' + self.consuming_verb] = int(planning_elt.nextSibling.strip().replace(u',', ''))
+    media_info[u'status_stats'] = status_stats
+
+    score_stats_header = media_page.find(u'h2', text='Score Stats')
+    score_stats = {
+      1: 0,
+      2: 0,
+      3: 0,
+      4: 0,
+      5: 0,
+      6: 0,
+      7: 0,
+      8: 0,
+      9: 0,
+      10: 0
+    }
+    if score_stats_header:
+      score_stats_table = score_stats_header.find_next_sibling(u'table')
+      if score_stats_table:
+        score_stats = {}
+        score_rows = score_stats_table.find_all(u'tr')
+        for i in xrange(len(score_rows)):
+          score_value = int(score_rows[i].find(u'td').text)
+          score_stats[score_value] = int(score_rows[i].find(u'small').text.replace(u'(u', '').replace(u' votes)', ''))
+    media_info[u'score_stats'] = score_stats
+
+    return media_info
+
+  def parse_characters(self, character_page):
+    """
+      Given a BeautifulSoup object containing a MAL media's character page DOM, return a dict with this media's character attributes.
+    """
+    media_info = self.parse_sidebar(character_page)
+    character_title = filter(lambda x: u'Characters' in x.text, character_page.find_all(u'h2'))
+    media_info[u'characters'] = {}
+    if character_title:
+      character_title = character_title[0]
+      curr_elt = character_title.find_next_sibling(u'table')
+      while curr_elt:
+        curr_row = curr_elt.find(u'tr')
+        # character in second col.
+        character_col = curr_row.find_all(u'td', recursive=False)[1]
+        character_link = character_col.find(u'a')
+        character_name = ' '.join(reversed(character_link.text.split(u', ')))
+        link_parts = character_link.get(u'href').split(u'/')
+        # of the form /character/7373/Holo
+        character = self.session.character(int(link_parts[2])).set({'name': character_name})
+        role = character_col.find(u'small').text
+        media_info[u'characters'][character] = {'role': role}
+        curr_elt = curr_elt.find_next_sibling(u'table')
+    return media_info
+
+  def load(self):
+    """
+      Fetches the MAL media page and sets the current media's attributes.
+    """
+    media_page = self.session.session.get(u'http://myanimelist.net/' + self.__class__.__name__.lower() + u'/' + str(self.id)).text
+    self.set(self.parse(utilities.get_clean_dom(media_page)))
+    return self
+
+  def load_stats(self):
+    """
+      Fetches the MAL media stats page and sets the current media's attributes.
+    """
+    stats_page = self.session.session.get(u'http://myanimelist.net/' + self.__class__.__name__.lower() + u'/' + str(self.id) + u'/' + utilities.urlencode(self.title) + u'/stats').text
+    self.set(self.parse_stats(utilities.get_clean_dom(stats_page)))
+    return self
+
+  def load_characters(self):
+    """
+      Fetches the MAL media's characters page and sets the current media's attributes.
+    """
+    characters_page = self.session.session.get(u'http://myanimelist.net/' + self.__class__.__name__.lower() + u'/' + str(self.id) + u'/' + utilities.urlencode(self.title) + u'/characters').text
+    self.set(self.parse_characters(utilities.get_clean_dom(characters_page)))
+    return self
+
+  @property
+  @loadable(u'load')
+  def title(self):
+    return self._title
+
+  @property
+  @loadable(u'load')
+  def picture(self):
+    return self._picture
+
+  @property
+  @loadable(u'load')
+  def alternative_titles(self):
+    return self._alternative_titles
+
+  @property
+  @loadable(u'load')
+  def type(self):
+    return self._type
+
+  @property
+  @loadable(u'load')
+  def status(self):
+    return self._status
+
+  @property
+  @loadable(u'load')
+  def genres(self):
+    return self._genres
+
+  @property
+  @loadable(u'load')
+  def score(self):
+    return self._score
+
+  @property
+  @loadable(u'load')
+  def rank(self):
+    return self._rank
+
+  @property
+  @loadable(u'load')
+  def popularity(self):
+    return self._popularity
+
+  @property
+  @loadable(u'load')
+  def members(self):
+    return self._members
+
+  @property
+  @loadable(u'load')
+  def favorites(self):
+    return self._favorites
+
+  @property
+  @loadable(u'load')
+  def popular_tags(self):
+    return self._popular_tags
+  
+  @property
+  @loadable(u'load')
+  def synopsis(self):
+    return self._synopsis
+
+  @property
+  @loadable(u'load')
+  def related(self):
+    return self._related
+
+  @property
+  @loadable(u'load_characters')
+  def characters(self):
+    return self._characters
+
+  @property
+  @loadable(u'load_stats')
+  def status_stats(self):
+    return self._status_stats
+
+  @property
+  @loadable(u'load_stats')
+  def score_stats(self):
+    return self._score_stats

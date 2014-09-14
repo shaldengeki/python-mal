@@ -17,6 +17,7 @@ class Manga(media.Media):
     u'Finished',
     u'Not yet published'
   ]
+  consuming_verb = "read"
 
   @staticmethod
   def newest(session):
@@ -32,39 +33,14 @@ class Manga(media.Media):
     return Manga(session, latest_id)
 
   def __init__(self, session, manga_id):
-    super(Manga, self).__init__(session)
-    self.id = manga_id
-    if not isinstance(self.id, int) or int(self.id) < 1:
-      raise InvalidMangaError(self.id)
-    self._title = None
-
-  def __init__(self, session, manga_id):
-    super(Manga, self).__init__(session)
-    self.id = manga_id
-    if not isinstance(self.id, int) or int(self.id) < 1:
-      raise InvalidMangaError(self.id)
-    self._title = None
-    self._picture = None
-    self._alternative_titles = None
-    self._type = None
+    if not isinstance(manga_id, int) or int(manga_id) < 1:
+      raise InvalidMangaError(manga_id)
+    super(Manga, self).__init__(session, manga_id)
     self._volumes = None
     self._chapters = None
-    self._status = None
     self._published = None
-    self._genres = None
     self._authors = None
     self._serialization = None
-    self._score = None
-    self._rank = None
-    self._popularity = None
-    self._members = None
-    self._favorites = None
-    self._popular_tags = None
-    self._synopsis = None
-    self._related = None
-    self._score_stats = None
-    self._status_stats = None
-    self._characters = None
 
   def parse_sidebar(self, manga_page):
     """
@@ -139,89 +115,6 @@ class Manga(media.Media):
 
     return manga_info
 
-  def parse_characters(self, character_page):
-    """
-      Given a BeautifulSoup object containing a MAL manga's character page DOM, return a dict with this manga's character attributes.
-    """
-    manga_info = self.parse_sidebar(character_page)
-    character_title = filter(lambda x: 'Characters' in x.text, character_page.find_all(u'h2'))
-    manga_info[u'characters'] = {}
-    if character_title:
-      character_title = character_title[0]
-      curr_elt = character_title.find_next_sibling(u'table')
-      while curr_elt:
-        curr_row = curr_elt.find(u'tr')
-        # character in second col.
-        (_, character_col) = curr_row.find_all(u'td', recursive=False)
-        character_link = character_col.find(u'a')
-        character_name = ' '.join(reversed(character_link.text.split(u', ')))
-        link_parts = character_link.get(u'href').split(u'/')
-        # of the form /character/7373/Holo
-        character = self.session.character(int(link_parts[2])).set({'name': character_name})
-        role = character_col.find(u'small').text
-        manga_info[u'characters'][character] = role
-        curr_elt = curr_elt.find_next_sibling(u'table')
-    return manga_info
-
-  def parse_stats(self, manga_page):
-    """
-      Given a BeautifulSoup object containing a MAL manga stats page's DOM, returns a dict with this manga's attributes.
-    """
-    manga_info = self.parse_sidebar(manga_page)
-
-    status_stats = {
-      'watching': 0,
-      'completed': 0,
-      'on_hold': 0,
-      'dropped': 0,
-      'plan_to_watch': 0
-    }
-    watching_elt = manga_page.find(u'span', {'class': 'dark_text'}, text="Watching:")
-    if watching_elt:
-      status_stats[u'watching'] = int(watching_elt.nextSibling.strip().replace(u',', ''))
-
-    completed_elt = manga_page.find(u'span', {'class': 'dark_text'}, text="Completed:")
-    if completed_elt:
-      status_stats[u'completed'] = int(completed_elt.nextSibling.strip().replace(u',', ''))
-
-    on_hold_elt = manga_page.find(u'span', {'class': 'dark_text'}, text="On-Hold:")
-    if on_hold_elt:
-      status_stats[u'on_hold'] = int(on_hold_elt.nextSibling.strip().replace(u',', ''))
-
-    dropped_elt = manga_page.find(u'span', {'class': 'dark_text'}, text="Dropped:")
-    if dropped_elt:
-      status_stats[u'dropped'] = int(dropped_elt.nextSibling.strip().replace(u',', ''))
-
-    plan_to_watch_elt = manga_page.find(u'span', {'class': 'dark_text'}, text="Plan to Watch:")
-    if plan_to_watch_elt:
-      status_stats[u'plan_to_watch'] = int(plan_to_watch_elt.nextSibling.strip().replace(u',', ''))
-    manga_info[u'status_stats'] = status_stats
-
-    score_stats_header = manga_page.find(u'h2', text='Score Stats')
-    score_stats = {
-      1: 0,
-      2: 0,
-      3: 0,
-      4: 0,
-      5: 0,
-      6: 0,
-      7: 0,
-      8: 0,
-      9: 0,
-      10: 0
-    }
-    if score_stats_header:
-      score_stats_table = score_stats_header.find_next_sibling(u'table')
-      if score_stats_table:
-        score_stats = {}
-        score_rows = score_stats_table.find_all(u'tr')
-        for i in xrange(len(score_rows)):
-          score_value = int(score_rows[i].find(u'td').text)
-          score_stats[score_value] = int(score_rows[i].find(u'small').text.replace(u'(u', '').replace(u' votes)', ''))
-    manga_info[u'score_stats'] = score_stats
-
-    return manga_info
-
   def load(self):
     """
       Fetches the MAL manga page and sets the current manga's attributes.
@@ -229,42 +122,6 @@ class Manga(media.Media):
     manga_page = self.session.session.get(u'http://myanimelist.net/manga/' + str(self.id)).text
     self.set(self.parse(utilities.get_clean_dom(manga_page)))
     return self
-
-  def load_characters(self):
-    """
-      Fetches the MAL manga's characters page and sets the current manga's attributes.
-    """
-    characters_page = self.session.session.get(u'http://myanimelist.net/manga/' + str(self.id) + u'/' + utilities.urlencode(self.title) + u'/characters').text
-    self.set(self.parse_characters(utilities.get_clean_dom(characters_page)))
-    return self
-    
-  def load_stats(self):
-    """
-      Fetches the MAL manga stats page and sets the current manga's attributes.
-    """
-    stats_page = self.session.session.get(u'http://myanimelist.net/manga/' + str(self.id) + u'/' + utilities.urlencode(self.title) + u'/stats').text
-    self.set(self.parse_stats(utilities.get_clean_dom(stats_page)))
-    return self
-
-  @property
-  @loadable(u'load')
-  def title(self):
-    return self._title
-
-  @property
-  @loadable(u'load')
-  def picture(self):
-    return self._picture
-
-  @property
-  @loadable(u'load')
-  def alternative_titles(self):
-    return self._alternative_titles
-
-  @property
-  @loadable(u'load')
-  def type(self):
-    return self._type
 
   @property
   @loadable(u'load')
@@ -278,11 +135,6 @@ class Manga(media.Media):
 
   @property
   @loadable(u'load')
-  def status(self):
-    return self._status
-
-  @property
-  @loadable(u'load')
   def published(self):
     return self._published
 
@@ -293,65 +145,5 @@ class Manga(media.Media):
 
   @property
   @loadable(u'load')
-  def genres(self):
-    return self._genres
-
-  @property
-  @loadable(u'load')
   def serialization(self):
     return self._serialization
-
-  @property
-  @loadable(u'load')
-  def score(self):
-    return self._score
-
-  @property
-  @loadable(u'load')
-  def rank(self):
-    return self._rank
-
-  @property
-  @loadable(u'load')
-  def popularity(self):
-    return self._popularity
-
-  @property
-  @loadable(u'load')
-  def members(self):
-    return self._members
-
-  @property
-  @loadable(u'load')
-  def favorites(self):
-    return self._favorites
-
-  @property
-  @loadable(u'load')
-  def popular_tags(self):
-    return self._popular_tags
-  
-  @property
-  @loadable(u'load')
-  def synopsis(self):
-    return self._synopsis
-
-  @property
-  @loadable(u'load')
-  def related(self):
-    return self._related
-
-  @property
-  @loadable(u'load_characters')
-  def characters(self):
-    return self._characters
-
-  @property
-  @loadable(u'load_stats')
-  def status_stats(self):
-    return self._status_stats
-
-  @property
-  @loadable(u'load_stats')
-  def score_stats(self):
-    return self._score_stats
