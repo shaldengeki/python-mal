@@ -9,30 +9,11 @@ import utilities
 from base import Base, Error, loadable
 import media
 
-class MalformedMangaPageError(Error):
-  def __init__(self, manga_id, html, message=None):
-    super(MalformedMangaPageError, self).__init__(message=message)
-    self.manga_id = int(manga_id)
-    if isinstance(html, unicode):
-      self.html = html
-    else:
-      self.html = str(html).decode(u'utf-8')
-  def __str__(self):
-    return "\n".join([
-      super(MalformedMangaPageError, self).__str__(),
-      "ID: " + unicode(self.manga_id),
-      "HTML: " + self.html
-    ]).encode(u'utf-8')
+class MalformedMangaPageError(media.MalformedMediaPageError):
+  pass
 
-class InvalidMangaError(Error):
-  def __init__(self, manga_id, message=None):
-    super(InvalidMangaError, self).__init__(message=message)
-    self.manga_id = manga_id
-  def __str__(self):
-    return "\n".join([
-      super(InvalidMangaError, self).__str__(),
-      "ID: " + unicode(self.manga_id)
-    ])
+class InvalidMangaError(media.InvalidMediaError):
+  pass
 
 class Manga(media.Media):
   status_terms = [
@@ -94,7 +75,6 @@ class Manga(media.Media):
     """
       Given a MAL manga page's HTML, returns a dict with this manga's attributes found on the sidebar.
     """
-    manga_info = {}
     manga_page = bs4.BeautifulSoup(html)
 
     # if MAL says the series doesn't exist, raise an InvalidMangaError.
@@ -107,33 +87,10 @@ class Manga(media.Media):
       # otherwise, raise a MalformedMangaPageError.
       raise MalformedMangaPageError(self.id, html, message="Could not find title div")
 
-    utilities.extract_tags(title_tag.find_all())
-    manga_info[u'title'] = title_tag.text.strip()
+    # otherwise, begin parsing.
+    manga_info = super(Manga, self).parse_sidebar(html)
 
     info_panel_first = manga_page.find(u'div', {'id': 'content'}).find(u'table').find(u'td')
-
-    picture_tag = info_panel_first.find(u'img')
-    manga_info[u'picture'] = picture_tag.get(u'src').decode('utf-8')
-
-    # assemble alternative titles for this series.
-    manga_info[u'alternative_titles'] = {}
-    alt_titles_header = info_panel_first.find(u'h2', text=u'Alternative Titles')
-    if alt_titles_header:
-      next_tag = alt_titles_header.find_next_sibling(u'div', {'class': 'spaceit_pad'})
-      while True:
-        if next_tag is None or not next_tag.find(u'span', {'class': 'dark_text'}):
-          # not a language node, break.
-          break
-        # get language and remove the node.
-        language = next_tag.find(u'span').text[:-1]
-        utilities.extract_tags(next_tag.find_all(u'span', {'class': 'dark_text'}))
-        names = next_tag.text.strip().split(u', ')
-        manga_info[u'alternative_titles'][language] = names
-        next_tag = next_tag.find_next_sibling(u'div', {'class': 'spaceit_pad'})
-
-    type_tag = info_panel_first.find(text=u'Type:').parent.parent
-    utilities.extract_tags(type_tag.find_all(u'span', {'class': 'dark_text'}))
-    manga_info[u'type'] = type_tag.text.strip()
 
     volumes_tag = info_panel_first.find(text=u'Volumes:').parent.parent
     utilities.extract_tags(volumes_tag.find_all(u'span', {'class': 'dark_text'}))
@@ -142,10 +99,6 @@ class Manga(media.Media):
     chapters_tag = info_panel_first.find(text=u'Chapters:').parent.parent
     utilities.extract_tags(chapters_tag.find_all(u'span', {'class': 'dark_text'}))
     manga_info[u'chapters'] = int(chapters_tag.text.strip()) if chapters_tag.text.strip() != 'Unknown' else None
-
-    status_tag = info_panel_first.find(text=u'Status:').parent.parent
-    utilities.extract_tags(status_tag.find_all(u'span', {'class': 'dark_text'}))
-    manga_info[u'status'] = status_tag.text.strip()
 
     published_tag = info_panel_first.find(text=u'Published:').parent.parent
     utilities.extract_tags(published_tag.find_all(u'span', {'class': 'dark_text'}))
@@ -173,15 +126,6 @@ class Manga(media.Media):
           raise MalformedMangaPageError(self.id, published_parts[1], message="Could not parse second of two publish dates")
       manga_info[u'published'] = (publish_start, publish_end)
 
-    genres_tag = info_panel_first.find(text=u'Genres:').parent.parent
-    utilities.extract_tags(genres_tag.find_all(u'span', {'class': 'dark_text'}))
-    manga_info[u'genres'] = []
-    for genre_link in genres_tag.find_all('a'):
-      link_parts = genre_link.get('href').split('[]=')
-      # of the form /anime|manga.php?genre[]=1
-      genre = self.session.genre(int(link_parts[1])).set({'name': genre_link.text})
-      manga_info[u'genres'].append(genre)
-
     authors_tag = info_panel_first.find(text=u'Authors:').parent.parent
     utilities.extract_tags(authors_tag.find_all(u'span', {'class': 'dark_text'}))
     manga_info[u'authors'] = {}
@@ -199,41 +143,6 @@ class Manga(media.Media):
       link_parts = publication_link.get('href').split('mid=')
       # of the form /manga.php?mid=1
       manga_info[u'serialization'] = self.session.publication(int(link_parts[1])).set({'name': publication_link.text})
-
-    # grab statistics for this anime.
-    stats_header = manga_page.find(u'h2', text=u'Statistics')
-
-    score_tag = info_panel_first.find(text=u'Score:').parent.parent
-    # get score and number of users.
-    users_node = [x for x in score_tag.find_all(u'small') if u'scored by' in x.text][0]
-    num_users = int(users_node.text.split(u'scored by ')[-1].split(u' users')[0])
-    utilities.extract_tags(score_tag.find_all())
-    manga_info[u'score'] = (decimal.Decimal(score_tag.text.strip()), num_users)
-
-    rank_tag = info_panel_first.find(text=u'Ranked:').parent.parent
-    utilities.extract_tags(rank_tag.find_all())
-    manga_info[u'rank'] = int(rank_tag.text.strip()[1:].replace(u',', ''))
-
-    popularity_tag = info_panel_first.find(text=u'Popularity:').parent.parent
-    utilities.extract_tags(popularity_tag.find_all())
-    manga_info[u'popularity'] = int(popularity_tag.text.strip()[1:].replace(u',', ''))
-
-    members_tag = info_panel_first.find(text=u'Members:').parent.parent
-    utilities.extract_tags(members_tag.find_all())
-    manga_info[u'members'] = int(members_tag.text.strip().replace(u',', ''))
-
-    favorites_tag = info_panel_first.find(text=u'Favorites:').parent.parent
-    utilities.extract_tags(favorites_tag.find_all())
-    manga_info[u'favorites'] = int(favorites_tag.text.strip().replace(u',', ''))
-
-    # get popular tags.
-    tags_header = manga_page.find(u'h2', text=u'Popular Tags')
-    tags_tag = tags_header.find_next_sibling(u'span')
-    manga_info[u'popular_tags'] = {}
-    for tag_link in tags_tag.find_all('a'):
-      tag = self.session.tag(tag_link.text)
-      num_people = int(re.match(r'(?P<people>[0-9]+) people', tag_link.get('title')).group('people'))
-      manga_info[u'popular_tags'][tag] = num_people
 
     return manga_info
   def parse(self, html):

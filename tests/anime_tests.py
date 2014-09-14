@@ -109,21 +109,21 @@ class testAnimeClass(object):
     assert self.bebop.duration == 24
     assert self.prisma.duration == 25
 
-  def testWeightedScore(self):
-    assert isinstance(self.spicy_wolf.weighted_score, tuple)
-    assert isinstance(self.spicy_wolf.weighted_score[0], float) and self.spicy_wolf.weighted_score[0] > 0 and self.spicy_wolf.weighted_score[0] < 10
-    assert isinstance(self.spicy_wolf.weighted_score[1], int) and self.spicy_wolf.weighted_score[1] >= 0
-    assert isinstance(self.bebop.weighted_score, tuple)
-    assert isinstance(self.bebop.weighted_score[0], float) and self.bebop.weighted_score[0] > 0 and self.bebop.weighted_score[0] < 10
-    assert isinstance(self.bebop.weighted_score[1], int) and self.bebop.weighted_score[1] >= 0
-    assert isinstance(self.space_dandy.weighted_score, tuple)
-    assert isinstance(self.space_dandy.weighted_score[0], float) and self.space_dandy.weighted_score[0] > 0 and self.space_dandy.weighted_score[0] < 10
-    assert isinstance(self.space_dandy.weighted_score[1], int) and self.space_dandy.weighted_score[1] >= 0
-    assert isinstance(self.totoro.weighted_score, tuple)
-    assert isinstance(self.totoro.weighted_score[0], float) and self.totoro.weighted_score[0] > 0 and self.totoro.weighted_score[0] < 10
-    assert isinstance(self.totoro.weighted_score[1], int) and self.totoro.weighted_score[1] >= 0
-    assert isinstance(self.prisma.weighted_score[0], float) and self.prisma.weighted_score[0] > 0 and self.prisma.weighted_score[0] < 10
-    assert isinstance(self.prisma.weighted_score[1], int) and self.prisma.weighted_score[1] >= 0
+  def testScore(self):
+    assert isinstance(self.spicy_wolf.score, tuple)
+    assert self.spicy_wolf.score[0] > 0 and self.spicy_wolf.score[0] < 10
+    assert isinstance(self.spicy_wolf.score[1], int) and self.spicy_wolf.score[1] >= 0
+    assert isinstance(self.bebop.score, tuple)
+    assert self.bebop.score[0] > 0 and self.bebop.score[0] < 10
+    assert isinstance(self.bebop.score[1], int) and self.bebop.score[1] >= 0
+    assert isinstance(self.space_dandy.score, tuple)
+    assert self.space_dandy.score[0] > 0 and self.space_dandy.score[0] < 10
+    assert isinstance(self.space_dandy.score[1], int) and self.space_dandy.score[1] >= 0
+    assert isinstance(self.totoro.score, tuple)
+    assert self.totoro.score[0] > 0 and self.totoro.score[0] < 10
+    assert isinstance(self.totoro.score[1], int) and self.totoro.score[1] >= 0
+    assert self.prisma.score[0] > 0 and self.prisma.score[0] < 10
+    assert isinstance(self.prisma.score[1], int) and self.prisma.score[1] >= 0
 
   def testRank(self):
     assert isinstance(self.spicy_wolf.rank, int) and self.spicy_wolf.rank > 0

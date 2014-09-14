@@ -16,6 +16,9 @@ def fix_bad_html(html):
     return match.group(u'count') + '/' + match.group(u'total') + '</td>'
   html = re.sub(r'(?P<count>[0-9\-]+)</span>/(?P<total>[0-9\-]+)</a></span></td>', anime_list_closing_span, html)
 
+  # on anime info pages, under rating, there's an extra </div> by the "licensing company" note.
+  html = html.replace('<small>L</small></sup><small> represents licensing company</small></div>', '<small>L</small></sup><small> represents licensing company</small>')
+
   # on manga character pages, sometimes the character info column will have an extra </div>.
   def manga_character_double_closed_div_picture(match):
     return "<td " + match.group(u'td_tag') + ">\n\t\t\t<div " + match.group(u'div_tag') + "><a " + match.group(u'a_tag') + "><img " + match.group(u'img_tag') + "></a></div>\n\t\t\t</td>"

@@ -8,30 +8,10 @@ import utilities
 import media
 from base import Error, loadable
 
-class MalformedAnimePageError(Error):
-  def __init__(self, anime_id, html, message=None):
-    super(MalformedAnimePageError, self).__init__(message=message)
-    self.anime_id = int(anime_id)
-    if isinstance(html, unicode):
-      self.html = html
-    else:
-      self.html = str(html).decode(u'utf-8')
-  def __str__(self):
-    return "\n".join([
-      super(MalformedAnimePageError, self).__str__(),
-      "Anime ID: " + unicode(self.anime_id),
-      "HTML: " + self.html
-    ]).encode(u'utf-8')
-
-class InvalidAnimeError(Error):
-  def __init__(self, anime_id, message=None):
-    super(InvalidAnimeError, self).__init__(message=message)
-    self.anime_id = anime_id
-  def __str__(self):
-    return "\n".join([
-      super(InvalidAnimeError, self).__str__(),
-      "Anime ID: " + unicode(self.anime_id)
-    ])
+class MalformedAnimePageError(media.MalformedMediaPageError):
+  pass
+class InvalidAnimeError(media.InvalidMediaError):
+  pass
 
 class Anime(media.Media):
   status_terms = [
@@ -70,7 +50,7 @@ class Anime(media.Media):
     self._genres = None
     self._duration = None
     self._rating = None
-    self._weighted_score = None
+    self._score = None
     self._rank = None
     self._popularity = None
     self._members = None
@@ -88,7 +68,6 @@ class Anime(media.Media):
     """
       Given a MAL anime page's HTML, returns a dict with this anime's attributes found on the sidebar.
     """
-    anime_info = {}
     anime_page = bs4.BeautifulSoup(html)
 
     # if MAL says the series doesn't exist, raise an InvalidAnimeError.
@@ -101,45 +80,14 @@ class Anime(media.Media):
       # otherwise, raise a MalformedAnimePageError.
       raise MalformedAnimePageError(self.id, html, message="Could not find title div")
 
-    utilities.extract_tags(title_tag.find_all())
-    anime_info[u'title'] = title_tag.text.strip()
-
+    anime_info = super(Anime, self).parse_sidebar(html)
     info_panel_first = anime_page.find(u'div', {'id': 'content'}).find(u'table').find(u'td')
 
-    picture_tag = info_panel_first.find(u'img')
-    anime_info[u'picture'] = picture_tag.get(u'src').decode('utf-8')
-
-    # assemble alternative titles for this series.
-    anime_info[u'alternative_titles'] = {}
-    alt_titles_header = info_panel_first.find(u'h2', text=u'Alternative Titles')
-    if alt_titles_header:
-      next_tag = alt_titles_header.find_next_sibling(u'div', {'class': 'spaceit_pad'})
-      while True:
-        if next_tag is None or not next_tag.find(u'span', {'class': 'dark_text'}):
-          # not a language node, break.
-          break
-        # get language and remove the node.
-        language = next_tag.find(u'span').text[:-1]
-        utilities.extract_tags(next_tag.find_all(u'span', {'class': 'dark_text'}))
-        names = next_tag.text.strip().split(u', ')
-        anime_info[u'alternative_titles'][language] = names
-        next_tag = next_tag.find_next_sibling(u'div', {'class': 'spaceit_pad'})
-
-    info_header = info_panel_first.find(u'h2', text=u'Information')
-
-    type_tag = info_header.find_next_sibling(u'div')
-    utilities.extract_tags(type_tag.find_all(u'span', {'class': 'dark_text'}))
-    anime_info[u'type'] = type_tag.text.strip()
-
-    episode_tag = type_tag.find_next_sibling(u'div')
+    episode_tag = info_panel_first.find(text=u'Episodes:').parent.parent
     utilities.extract_tags(episode_tag.find_all(u'span', {'class': 'dark_text'}))
     anime_info[u'episodes'] = int(episode_tag.text.strip()) if episode_tag.text.strip() != 'Unknown' else 0
 
-    status_tag = episode_tag.find_next_sibling(u'div')
-    utilities.extract_tags(status_tag.find_all(u'span', {'class': 'dark_text'}))
-    anime_info[u'status'] = status_tag.text.strip()
-
-    aired_tag = status_tag.find_next_sibling(u'div')
+    aired_tag = info_panel_first.find(text=u'Aired:').parent.parent
     utilities.extract_tags(aired_tag.find_all(u'span', {'class': 'dark_text'}))
     aired_parts = aired_tag.text.strip().split(u' to ')
     if len(aired_parts) == 1:
@@ -161,22 +109,12 @@ class Anime(media.Media):
         raise MalformedAnimePageError(self.id, aired_parts[1], message="Could not parse second of two air dates")
       anime_info[u'aired'] = (air_start, air_end)
 
-    producers_tag = aired_tag.find_next_sibling(u'div')
+    producers_tag = info_panel_first.find(text=u'Producers:').parent.parent
     utilities.extract_tags(producers_tag.find_all(u'span', {'class': 'dark_text'}))
     utilities.extract_tags(producers_tag.find_all(u'sup'))
     anime_info[u'producers'] = producers_tag.text.strip().split(u', ')
 
-    # TODO: make this contain myanimelist.genre objects
-    genres_tag = producers_tag.find_next_sibling(u'div')
-    utilities.extract_tags(genres_tag.find_all(u'span', {'class': 'dark_text'}))
-    anime_info[u'genres'] = []
-    for genre_link in genres_tag.find_all('a'):
-      link_parts = genre_link.get('href').split('[]=')
-      # of the form /anime|manga.php?genre[]=1
-      genre = self.session.genre(int(link_parts[1])).set({'name': genre_link.text})
-      anime_info[u'genres'].append(genre)
-
-    duration_tag = genres_tag.find_next_sibling(u'div')
+    duration_tag = info_panel_first.find(text=u'Duration:').parent.parent
     utilities.extract_tags(duration_tag.find_all(u'span', {'class': 'dark_text'}))
     anime_info[u'duration'] = duration_tag.text.strip()
     duration_parts = [part.strip() for part in anime_info[u'duration'].split(u'.')]
@@ -192,40 +130,10 @@ class Anime(media.Media):
         duration_mins += part_volume
     anime_info[u'duration'] = duration_mins
 
-    rating_tag = duration_tag.find_next_sibling(u'div')
+    rating_tag = info_panel_first.find(text=u'Rating:').parent.parent
     utilities.extract_tags(rating_tag.find_all(u'span', {'class': 'dark_text'}))
     anime_info[u'rating'] = rating_tag.text.strip()
 
-    # grab statistics for this anime.
-    stats_header = anime_page.find(u'h2', text=u'Statistics')
-
-    weighted_score_tag = stats_header.find_next_sibling(u'div')
-    # get weighted score and number of users.
-    users_node = [x for x in weighted_score_tag.find_all(u'small') if u'scored by' in x.text][0]
-    weighted_users = int(users_node.text.split(u'scored by ')[-1].split(u' users')[0])
-    utilities.extract_tags(weighted_score_tag.find_all())
-    anime_info[u'weighted_score'] = (float(weighted_score_tag.text.strip()), weighted_users)
-
-    rank_tag = weighted_score_tag.find_next_sibling(u'div')
-    utilities.extract_tags(rank_tag.find_all())
-    anime_info[u'rank'] = int(rank_tag.text.strip()[1:].replace(u',', '')) if rank_tag.text.strip()[1:].replace(u',', '') != 'Unknown' else 0
-
-    popularity_tag = rank_tag.find_next_sibling(u'div')
-    utilities.extract_tags(popularity_tag.find_all())
-    anime_info[u'popularity'] = int(popularity_tag.text.strip()[1:].replace(u',', '')) if popularity_tag.text.strip()[1:].replace(u',', '') != 'Unknown' else 0
-
-    members_tag = popularity_tag.find_next_sibling(u'div')
-    utilities.extract_tags(members_tag.find_all())
-    anime_info[u'members'] = int(members_tag.text.strip().replace(u',', '')) if members_tag.text.strip().replace(u',', '') != 'Unknown' else 0
-
-    favorites_tag = members_tag.find_next_sibling(u'div')
-    utilities.extract_tags(favorites_tag.find_all())
-    anime_info[u'favorites'] = int(favorites_tag.text.strip().replace(u',', '')) if favorites_tag.text.strip().replace(u',', '') != 'Unknown' else 0
-
-    # get popular tags.
-    tags_header = anime_page.find(u'h2', text=u'Popular Tags')
-    tags_tag = tags_header.find_next_sibling(u'span')
-    anime_info[u'tags'] = tags_tag.text.strip().split(u' ')
     return anime_info    
 
   def parse(self, html):
@@ -491,8 +399,8 @@ class Anime(media.Media):
 
   @property
   @loadable(u'load')
-  def weighted_score(self):
-    return self._weighted_score
+  def score(self):
+    return self._score
 
   @property
   @loadable(u'load')
