@@ -165,7 +165,7 @@ class Manga(media.Media):
 
   def parse_stats(self, manga_page):
     """
-      Given a MAL manga stats page's HTML, returns a dict with this manga's attributes.
+      Given a BeautifulSoup object containing a MAL manga stats page's DOM, returns a dict with this manga's attributes.
     """
     manga_info = self.parse_sidebar(manga_page)
 

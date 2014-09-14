@@ -64,7 +64,7 @@ class Anime(media.Media):
 
   def parse_sidebar(self, anime_page):
     """
-      Given a MAL anime page's HTML, returns a dict with this anime's attributes found on the sidebar.
+      Given a BeautifulSoup object containing a MAL anime page's DOM, returns a dict with this anime's attributes found on the sidebar.
     """
     # if MAL says the series doesn't exist, raise an InvalidAnimeError.
     error_tag = anime_page.find(u'div', {'class': 'badresult'})
@@ -134,7 +134,7 @@ class Anime(media.Media):
 
   def parse_characters(self, character_page):
     """
-      Given a MAL anime's character page HTML, return a dict with this anime's character/staff/va attributes.
+      Given a BeautifulSoup object containing a MAL anime's character page DOM, return a dict with this anime's character/staff/va attributes.
     """
     anime_info = self.parse_sidebar(character_page)
 
@@ -198,7 +198,7 @@ class Anime(media.Media):
 
   def parse_stats(self, anime_page):
     """
-      Given a MAL anime stats page's HTML, returns a dict with this anime's attributes.
+      Given a BeautifulSoup object containing a MAL anime stats page's DOM, returns a dict with this anime's attributes.
     """
     anime_info = self.parse_sidebar(anime_page)
     status_stats = {
