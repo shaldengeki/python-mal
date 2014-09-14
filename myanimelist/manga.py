@@ -247,7 +247,7 @@ class Manga(media.Media):
     utilities.extract_tags(synopsis_elt.find_all(u'h2'))
     manga_info[u'synopsis'] = synopsis_elt.text.strip()
 
-    related_title = manga_page.find(u'h2', text=u'Related Anime')
+    related_title = manga_page.find(u'h2', text=u'Related Manga')
     if related_title:
       related_elt = related_title.parent
       utilities.extract_tags(related_elt.find_all(u'h2'))
@@ -263,7 +263,7 @@ class Manga(media.Media):
         related_type = None
         while True:
           if not curr_elt:
-            raise MalformedMangaPageError(self.id, related_elt, message="Prematurely reached end of related anime listing")
+            raise MalformedMangaPageError(self.id, related_elt, message="Prematurely reached end of related manga listing")
           if isinstance(curr_elt, bs4.NavigableString):
             type_match = re.match(u'(?P<type>[a-zA-Z\ \-]+):', curr_elt)
             if type_match:
@@ -274,7 +274,7 @@ class Manga(media.Media):
         href_parts = href.split(u'/')
         title = link.text
 
-        # sometimes links on MAL are broken, of the form /anime//
+        # sometimes links on MAL are broken, of the form /manga//
         if href_parts[2] == '':
           continue
         obj_id = int(href_parts[2])
@@ -296,22 +296,20 @@ class Manga(media.Media):
 
   def parse_characters(self, html):
     """
-      Given a MAL anime's character page HTML, return a dict with this anime's character attributes.
+      Given a MAL manga's character page HTML, return a dict with this manga's character attributes.
     """
+    html = utilities.fix_bad_html(html)
     manga_info = self.parse_sidebar(html)
     character_page = bs4.BeautifulSoup(html)
-    character_title = filter(lambda x: 'Characters & Voice Actors' in x.text, character_page.find_all(u'h2'))
+    character_title = filter(lambda x: 'Characters' in x.text, character_page.find_all(u'h2'))
     manga_info[u'characters'] = {}
     if character_title:
       character_title = character_title[0]
-      curr_elt = character_title.nextSibling
-      while True:
-        if curr_elt.name != u'table':
-          break
+      curr_elt = character_title.find_next_sibling(u'table')
+      while curr_elt:
         curr_row = curr_elt.find(u'tr')
         # character in second col.
         (_, character_col) = curr_row.find_all(u'td', recursive=False)
-
         character_link = character_col.find(u'a')
         character_name = ' '.join(reversed(character_link.text.split(u', ')))
         link_parts = character_link.get(u'href').split(u'/')
@@ -319,12 +317,12 @@ class Manga(media.Media):
         character = self.session.character(int(link_parts[2])).set({'name': character_name})
         role = character_col.find(u'small').text
         manga_info[u'characters'][character] = role
-        curr_elt = curr_elt.nextSibling
+        curr_elt = curr_elt.find_next_sibling(u'table')
     return manga_info
 
   def parse_stats(self, html):
     """
-      Given a MAL anime stats page's HTML, returns a dict with this anime's attributes.
+      Given a MAL manga stats page's HTML, returns a dict with this manga's attributes.
     """
     manga_info = self.parse_sidebar(html)
     manga_page = bs4.BeautifulSoup(html)

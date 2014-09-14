@@ -212,13 +212,15 @@ class testMangaClass(object):
 
   def testCharacters(self):
     assert isinstance(self.holic.characters, dict) and len(self.holic.characters) > 0
-    assert self.doumeki in self.holic.characters and self.holic.characters[self.doumeki][u'role'] == 'Main'
+    assert self.doumeki in self.holic.characters and self.holic.characters[self.doumeki] == 'Main'
 
     assert isinstance(self.monster.characters, dict) and len(self.monster.characters) > 0
-    assert self.heinemann in self.monster.characters and self.monster.characters[self.heinemann][u'role'] == 'Main'
+    assert self.heinemann in self.monster.characters and self.monster.characters[self.heinemann] == 'Main'
 
     assert isinstance(self.naruto.characters, dict) and len(self.naruto.characters) > 0
-    assert self.ebizou in self.naruto.characters and self.naruto.characters[self.ebizou][u'role'] == 'Supporting'
+    print self.ebizou
+    print self.naruto.characters
+    assert self.ebizou in self.naruto.characters and self.naruto.characters[self.ebizou] == 'Supporting'
 
     assert isinstance(self.tomoyo_after.characters, dict) and len(self.tomoyo_after.characters) > 0
-    assert self.kanako in self.tomoyo_after.characters and self.tomoyo_after.characters[self.kanako][u'role'] == 'Supporting'
+    assert self.kanako in self.tomoyo_after.characters and self.tomoyo_after.characters[self.kanako] == 'Supporting'

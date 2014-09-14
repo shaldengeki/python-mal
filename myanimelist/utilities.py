@@ -7,6 +7,7 @@ import urllib
 def fix_bad_html(html):
   """
     Fixes for various DOM errors that MAL commits.
+    Yes, I know this is a cardinal sin, but there's really no elegant way to fix this.
   """
   # on anime list pages, sometimes tds won't be properly opened.
   html = re.sub(r'[\s]td class=', "<td class=", html)
@@ -14,6 +15,15 @@ def fix_bad_html(html):
   def anime_list_closing_span(match):
     return match.group(u'count') + '/' + match.group(u'total') + '</td>'
   html = re.sub(r'(?P<count>[0-9\-]+)</span>/(?P<total>[0-9\-]+)</a></span></td>', anime_list_closing_span, html)
+
+  # on manga character pages, sometimes the character info column will have an extra </div>.
+  def manga_character_double_closed_div_picture(match):
+    return "<td " + match.group(u'td_tag') + ">\n\t\t\t<div " + match.group(u'div_tag') + "><a " + match.group(u'a_tag') + "><img " + match.group(u'img_tag') + "></a></div>\n\t\t\t</td>"
+  html = re.sub(r"""<td (?P<td_tag>[^>]+)>\n\t\t\t<div (?P<div_tag>[^>]+)><a (?P<a_tag>[^>]+)><img (?P<img_tag>[^>]+)></a></div>\n\t\t\t</div>\n\t\t\t</td>""", manga_character_double_closed_div_picture, html)
+
+  def manga_character_double_closed_div_character(match):
+    return """<a href="/character/""" + match.group(u'char_link') + """">""" + match.group(u'char_name') + """</a>\n\t\t\t<div class="spaceit_pad"><small>""" + match.group(u'role') + """</small></div>"""
+  html = re.sub(r"""<a href="/character/(?P<char_link>[^"]+)">(?P<char_name>[^<]+)</a>\n\t\t\t<div class="spaceit_pad"><small>(?P<role>[A-Za-z ]+)</small></div>\n\t\t\t</div>""", manga_character_double_closed_div_character, html)
   return html
 
 def urlencode(url):
