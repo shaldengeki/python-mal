@@ -29,13 +29,17 @@ class UnauthorizedError(Error):
   def __init__(self, session, url, result):
     """Creates a new instance of UnauthorizedError.
 
-    Args:
-      session (myanimelist.session.Session):  A valid MAL session.
-      url (str):  The requested URL.
-      result (str): The result of the request.
+    :type session: :class:`.Session`
+    :param session: A valid MAL session.
 
-    Returns:
-      UnauthorizedError.  The desired error.
+    :type url: str
+    :param url: The requested URL.
+
+    :type result: str
+    :param result: The result of the request.
+
+    :rtype: :class:`.UnauthorizedError`
+    :return: The desired error.
 
     """
     super(UnauthorizedError, self).__init__()
@@ -56,12 +60,14 @@ class Session(object):
   def __init__(self, username=None, password=None):
     """Creates a new instance of Session.
 
-    Args:
-      username (myanimelist.session.Session):  A MAL username. May be omitted.
-      password (str):  A MAL password. May be omitted.
+    :type username: str
+    :param username: A MAL username. May be omitted.
 
-    Returns:
-      Session.  The desired session.
+    :type password: str
+    :param username: A MAL password. May be omitted.
+
+    :rtype: :class:`.Session`
+    :return: The desired session.
 
     """
     self.username = username
@@ -80,8 +86,8 @@ class Session(object):
     """Checks the logged-in status of the current session. 
     Expensive (requests a page), so use sparingly! Best practice is to try a request and catch an UnauthorizedError.
 
-    Returns:
-      bool.  whether or not the current session is logged-in.
+    :rtype: bool
+    :return: Whether or not the current session is logged-in.
 
     """
     if self.session is None:
@@ -98,8 +104,9 @@ class Session(object):
   def login(self):
     """Logs into MAL and sets cookies appropriately.
 
-    Returns:
-      Session.  The current session.
+    :rtype: :class:`.Session`
+    :return: The current session.
+
     """
     # POSTS a login to mal.
     mal_headers = {
@@ -118,166 +125,142 @@ class Session(object):
   def anime(self, anime_id):
     """Creates an instance of myanimelist.Anime with the given ID.
 
-    Args:
-      anime_id (int):  The desired anime's ID.
+    :type anime_id: int
+    :param anime_id: The desired anime's ID.
 
-    Returns:
-      myanimelist.Anime.  A new Anime instance with the given ID.
+    :rtype: :class:`myanimelist.anime.Anime`
+    :return: A new Anime instance with the given ID.
 
-    Raises:
-      InvalidAnimeError
     """
     return anime.Anime(self, anime_id)
 
   def anime_list(self, username):
     """Creates an instance of myanimelist.AnimeList belonging to the given username.
 
-    Args:
-      username (str):  The username to which the desired anime list belongs.
+    :type username: str
+    :param username: The username to whom the desired anime list belongs.
 
-    Returns:
-      myanimelist.AnimeList.  A new AnimeList instance belonging to the given username.
+    :rtype: :class:`myanimelist.anime_list.AnimeList`
+    :return: A new AnimeList instance belonging to the given username.
 
-    Raises:
-      InvalidAnimeListError
     """
     return anime_list.AnimeList(self, username)
 
   def character(self, character_id):
     """Creates an instance of myanimelist.Character with the given ID.
 
-    Args:
-      character_id (int):  The desired character's ID.
+    :type character_id: int
+    :param character_id: The desired character's ID.
 
-    Returns:
-      myanimelist.Character.  A new Character instance with the given ID.
+    :rtype: :class:`myanimelist.character.Character`
+    :return: A new Character instance with the given ID.
 
-    Raises:
-      InvalidCharacterError
     """
     return character.Character(self, character_id)
 
   def club(self, club_id):
     """Creates an instance of myanimelist.Club with the given ID.
 
-    Args:
-      club_id (int):  The desired club's ID.
+    :type club_id: int
+    :param club_id: The desired club's ID.
 
-    Returns:
-      myanimelist.Club.  A new Club instance with the given ID.
+    :rtype: :class:`myanimelist.club.Club`
+    :return: A new Club instance with the given ID.
 
-    Raises:
-      InvalidClubError
     """
     return club.Club(self, club_id)
 
   def genre(self, genre_id):
     """Creates an instance of myanimelist.Genre with the given ID.
 
-    Args:
-      genre_id (int):  The desired genre's ID.
+    :type genre_id: int
+    :param genre_id: The desired genre's ID.
 
-    Returns:
-      myanimelist.Genre.  A new Genre instance with the given ID.
+    :rtype: :class:`myanimelist.genre.Genre`
+    :return: A new Genre instance with the given ID.
 
-    Raises:
-      InvalidGenreError
     """
     return genre.Genre(self, genre_id)
 
   def manga(self, manga_id):
     """Creates an instance of myanimelist.Manga with the given ID.
 
-    Args:
-      manga_id (int):  The desired manga's ID.
+    :type manga_id: int
+    :param manga_id: The desired manga's ID.
 
-    Returns:
-      myanimelist.Manga.  A new Manga instance with the given ID.
+    :rtype: :class:`myanimelist.manga.Manga`
+    :return: A new Manga instance with the given ID.
 
-    Raises:
-      InvalidMangaError
     """
     return manga.Manga(self, manga_id)
 
   def manga_list(self, username):
     """Creates an instance of myanimelist.MangaList belonging to the given username.
 
-    Args:
-      username (str):  The username to which the desired manga list belongs.
+    :type username: str
+    :param username: The username to whom the desired manga list belongs.
 
-    Returns:
-      myanimelist.MangaList.  A new MangaList instance belonging to the given username.
+    :rtype: :class:`myanimelist.manga_list.MangaList`
+    :return: A new MangaList instance belonging to the given username.
 
-    Raises:
-      InvalidMangaListError
     """
     return manga_list.MangaList(self, username)
 
   def person(self, person_id):
     """Creates an instance of myanimelist.Person with the given ID.
 
-    Args:
-      person_id (int):  The desired person's ID.
+    :type person_id: int
+    :param person_id: The desired person's ID.
 
-    Returns:
-      myanimelist.Person.  A new Person instance with the given ID.
+    :rtype: :class:`myanimelist.person.Person`
+    :return: A new Person instance with the given ID.
 
-    Raises:
-      InvalidPersonError
     """
     return person.Person(self, person_id)
   def producer(self, producer_id):
     """Creates an instance of myanimelist.Producer with the given ID.
 
-    Args:
-      produer_id (int):  The desired producer's ID.
+    :type producer_id: int
+    :param producer_id: The desired producer's ID.
 
-    Returns:
-      myanimelist.Producer.  A new Producer instance with the given ID.
+    :rtype: :class:`myanimelist.producer.Producer`
+    :return: A new Producer instance with the given ID.
 
-    Raises:
-      InvalidProducerError
     """
     return producer.Producer(self, producer_id)
     
   def publication(self, publication_id):
     """Creates an instance of myanimelist.Publication with the given ID.
 
-    Args:
-      publication_id (int):  The desired publication's ID.
+    :type publication_id: int
+    :param publication_id: The desired publication's ID.
 
-    Returns:
-      myanimelist.Publication.  A new Publication instance with the given ID.
+    :rtype: :class:`myanimelist.publication.Publication`
+    :return: A new Publication instance with the given ID.
 
-    Raises:
-      InvalidPublicationError
     """
     return publication.Publication(self, publication_id)
 
   def tag(self, tag_id):
     """Creates an instance of myanimelist.Tag with the given ID.
 
-    Args:
-      tag_id (int):  The desired tag's ID.
+    :type tag_id: int
+    :param tag_id: The desired tag's ID.
 
-    Returns:
-      myanimelist.Tag.  A new Tag instance with the given ID.
+    :rtype: :class:`myanimelist.tag.Tag`
+    :return: A new Tag instance with the given ID.
 
-    Raises:
-      InvalidTagError
     """
     return tag.Tag(self, tag_id)
 
   def user(self, username):
     """Creates an instance of myanimelist.User with the given username
 
-    Args:
-      username (str):  The desired user's username.
+    :type username: str
+    :param username: The desired user's username.
 
-    Returns:
-      myanimelist.User.  A new User instance with the given username.
+    :rtype: :class:`myanimelist.user.User`
+    :return: A new User instance with the given username.
 
-    Raises:
-      InvalidUserError
     """
     return user.User(self, username)
