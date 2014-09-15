@@ -665,27 +665,42 @@ class User(Base):
   @loadable(u'load_reviews')
   def reviews(self):
     """A dict of this user's reviews, with keys as :class:`myanimelist.media.Media` objects, and values as dicts of attributes, e.g. 
-    {
-      'people_helped': int, 
-      'people_total': int, 
-      'media_consumed': int, 
-      'media_total': int, 
-      'rating': int, 
-      'text': str, 
-      'date': :class:`datetime.datetime`
-    }
+
+      {
+
+        'people_helped': int, 
+
+        'people_total': int, 
+
+        'media_consumed': int, 
+
+        'media_total': int, 
+
+        'rating': int, 
+
+        'text': str, 
+
+        'date': :class:`datetime.datetime`
+
+      }
+
     """
     return self._reviews
 
   @property
   @loadable(u'load_recommendations')
   def recommendations(self):
-    """A dict of this user's recommendations, with keys as :class:`myanimelist.media.Media` objects, and values as dicts of attributes, e.g. 
-    {
-      'anime|media': :class:`myanimelist.media.Media`, 
-      'text': str, 
-      'date': :class:`datetime.datetime`
-    }
+    """A dict of this user's recommendations, with keys as :class:`myanimelist.media.Media` objects, and values as dicts of attributes, e.g.
+
+      {
+
+        'anime|media': :class:`myanimelist.media.Media`, 
+
+        'text': str, 
+
+        'date': :class:`datetime.datetime`
+
+      }
     """
     return self._recommendations
 
@@ -700,10 +715,14 @@ class User(Base):
   @loadable(u'load_friends')
   def friends(self):
     """A dict of this user's friends, with keys as :class:`myanimelist.user.User` objects, and values as dicts of attributes, e.g. 
-    {
-      'last_active': :class:`datetime.datetime`, 
-      'since': :class:`datetime.datetime`
-    }
+
+      {
+
+        'last_active': :class:`datetime.datetime`, 
+
+        'since': :class:`datetime.datetime`
+
+      }
     """
     return self._friends
 
