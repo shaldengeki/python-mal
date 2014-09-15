@@ -31,15 +31,14 @@ class Manga(media.Media):
   def newest(session):
     """Fetches the latest manga added to MAL.
 
-    Args:
-      session (myanimelist.session.Session):  A valid MAL session.
+    :type session: :class:`myanimelist.session.Session`
+    :param session: A valid MAL session
 
+    :rtype: :class:`.Manga`
+    :return: the newest manga on MAL
 
-    Returns:
-      Manga.  the newest manga on MAL.
+    :raises: :class:`.MalformedMangaPageError`
 
-    Raises:
-      MalformedMangaPageError
     """
     # TODO: have Media subsume this responsibility
     p = session.session.get(u'http://myanimelist.net/manga.php?o=9&c[]=a&c[]=d&cv=2&w=1').text
@@ -53,15 +52,15 @@ class Manga(media.Media):
   def __init__(self, session, manga_id):
     """Creates a new instance of Manga.
 
-    Args:
-      session (myanimelist.session.Session):  A valid MAL session.
-      manga_id (int):  The desired manga's ID on MAL.
+    :type session: :class:`myanimelist.session.Session`
+    :param session: A valid MAL session
+    :type manga_id: int
+    :param manga_id: The desired manga's ID on MAL
 
-    Returns:
-      Manga.  The desired manga.
+    :rtype: :class:`.Manga`
+    :return: the desired manga
 
-    Raises:
-      InvalidMangaError
+    :raises: :class:`.InvalidMangaError`
 
     """
     if not isinstance(manga_id, int) or int(manga_id) < 1:
@@ -76,15 +75,13 @@ class Manga(media.Media):
   def parse_sidebar(self, manga_page):
     """Parses the DOM and returns manga attributes in the sidebar.
 
-    Args: 
-      manga_page (bs4.BeautifulSoup): MAL manga page's DOM
+    :type manga_page: :class:`bs4.BeautifulSoup`
+    :param manga_page: MAL manga page's DOM
 
-    Returns:
-      dict. manga attributes.
+    :rtype: dict
+    :return: manga attributes
 
-    Raises:
-      InvalidMangaError, MalformedMangaPageError
-
+    :raises: :class:`.InvalidMangaError`, :class:`.MalformedMangaPageError`
     """
     # if MAL says the series doesn't exist, raise an InvalidMangaError.
     error_tag = manga_page.find(u'div', {'class': 'badresult'})
@@ -158,26 +155,28 @@ class Manga(media.Media):
   @property
   @loadable(u'load')
   def volumes(self):
-    """int.  The number of volumes in this manga.
+    """The number of volumes in this manga.
     """
     return self._volumes
 
   @property
   @loadable(u'load')
   def chapters(self):
-    """int.  The number of chapters in this manga.
+    """The number of chapters in this manga.
     """
     return self._chapters
 
   @property
   @loadable(u'load')
   def published(self):
-    """tuple(2).  Up to two datetime.date objects representing the start and end dates of this manga's publishing.
+    """A tuple(2) containing up to two datetime.date objects representing the start and end dates of this manga's publishing.
 
       Potential configurations:
 
         None -- Completely-unknown publishing dates.
+
         (datetime.date, None) -- Manga start date is known, end date is unknown.
+
         (datetime.date, datetime.date) -- Manga start and end dates are known.
     """
     return self._published
@@ -185,17 +184,13 @@ class Manga(media.Media):
   @property
   @loadable(u'load')
   def authors(self):
-    """
-      dict. An author dict with::
-
-        keys -- a myanimelist.person.Person object of the author
-        values -- a string describing the duties of this author.
+    """An author dict with :class:`myanimelist.person.Person` objects of the authors as keys, and strings describing the duties of these authors as values.
     """
     return self._authors
 
   @property
   @loadable(u'load')
   def serialization(self):
-    """myanimelist.publication.Publication.  The publication involved in the first serialization of this manga.
+    """The :class:`myanimelist.publication.Publication` involved in the first serialization of this manga.
     """
     return self._serialization

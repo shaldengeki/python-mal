@@ -8,13 +8,11 @@ import media
 from base import Error, loadable
 
 class MalformedAnimePageError(media.MalformedMediaPageError):
-  """
-    Indicates that an anime-related page on MAL has irreparably broken markup in some way.
+  """Indicates that an anime-related page on MAL has irreparably broken markup in some way.
   """
   pass
 class InvalidAnimeError(media.InvalidMediaError):
-  """
-    Indicates that the anime requested does not exist on MAL.
+  """Indicates that the anime requested does not exist on MAL.
   """
   pass
 
@@ -33,15 +31,14 @@ class Anime(media.Media):
   def newest(session):
     """Fetches the latest anime added to MAL.
 
-    Args:
-      session (myanimelist.session.Session):  A valid MAL session.
+    :type session: :class:`myanimelist.session.Session`
+    :param session: A valid MAL session
 
+    :rtype: :class:`.Anime`
+    :return: the newest anime on MAL
 
-    Returns:
-      Anime.  the newest anime on MAL.
+    :raises: :class:`.MalformedAnimePageError`
 
-    Raises:
-      MalformedAnimePageError
     """
     p = session.session.get(u'http://myanimelist.net/anime.php?o=9&c[]=a&c[]=d&cv=2&w=1').text
     soup = utilities.get_clean_dom(p)
@@ -54,15 +51,15 @@ class Anime(media.Media):
   def __init__(self, session, anime_id):
     """Creates a new instance of Anime.
 
-    Args:
-      session (myanimelist.session.Session):  A valid MAL session.
-      anime_id (int):  The desired anime's ID on MAL.
+    :type session: :class:`myanimelist.session.Session`
+    :param session: A valid MAL session
+    :type anime_id: int
+    :param anime_id: The desired anime's ID on MAL
 
-    Returns:
-      Anime.  The desired anime.
+    :rtype: :class:`.Anime`
+    :return: the desired anime
 
-    Raises:
-      InvalidAnimeError
+    :raises: :class:`.InvalidAnimeError`
 
     """
     if not isinstance(anime_id, int) or int(anime_id) < 1:
@@ -79,15 +76,13 @@ class Anime(media.Media):
   def parse_sidebar(self, anime_page):
     """Parses the DOM and returns anime attributes in the sidebar.
 
-    Args: 
-      anime_page (bs4.BeautifulSoup): MAL anime page's DOM
+    :type anime_page: :class:`bs4.BeautifulSoup`
+    :param anime_page: MAL anime page's DOM
 
-    Returns:
-      dict. anime attributes.
+    :rtype: dict
+    :return: anime attributes
 
-    Raises:
-      InvalidAnimeError, MalformedAnimePageError
-
+    :raises: :class:`.InvalidAnimeError`, :class:`.MalformedAnimePageError`
     """
     # if MAL says the series doesn't exist, raise an InvalidAnimeError.
     error_tag = anime_page.find(u'div', {'class': 'badresult'})
@@ -158,15 +153,14 @@ class Anime(media.Media):
   def parse_characters(self, character_page):
     """Parses the DOM and returns anime character attributes in the sidebar.
 
-    Args: 
-      anime_page (bs4.BeautifulSoup): MAL anime character page's DOM
+    :type anime_page: :class:`bs4.BeautifulSoup`
+    :param anime_page: MAL anime character page's DOM
 
-    Returns:
-      dict. anime character attributes.
+    :rtype: dict
+    :return: anime character attributes
 
-    Raises:
-      InvalidAnimeError, MalformedAnimePageError
-      
+    :raises: :class:`.InvalidAnimeError`, :class:`.MalformedAnimePageError`
+
     """
     anime_info = self.parse_sidebar(character_page)
 
@@ -231,62 +225,57 @@ class Anime(media.Media):
   @property
   @loadable(u'load')
   def episodes(self):
-    """int.  The number of episodes in this anime. If undetermined, is None, otherwise > 0.
+    """The number of episodes in this anime. If undetermined, is None, otherwise > 0.
     """
     return self._episodes
 
   @property
   @loadable(u'load')
   def aired(self):
-    """tuple(2).  Up to two datetime.date objects representing the start and end dates of this anime's airing.
+    """A tuple(2) containing up to two datetime.date objects representing the start and end dates of this anime's airing.
 
       Potential configurations:
 
         None -- Completely-unknown airing dates.
-        (datetime.date, None) -- Anime start date is known, end date is unknown.
-        (datetime.date, datetime.date) -- Anime start and end dates are known.
+
+        (:class:`datetime.date`, None) -- Anime start date is known, end date is unknown.
+
+        (:class:`datetime.date`, :class:`datetime.date`) -- Anime start and end dates are known.
+
     """
     return self._aired
 
   @property
   @loadable(u'load')
   def producers(self):
-    """list.  List of producers involved in this anime. Contains myanimelist.producer.Producer objects.
+    """A list of :class:`myanimelist.producer.Producer` objects involved in this anime.
     """
     return self._producers
 
   @property
   @loadable(u'load')
   def duration(self):
-    """datetime.timedelta.  The duration of an episode of this anime.
+    """The duration of an episode of this anime as a :class:`datetime.timedelta`.
     """
     return self._duration
 
   @property
   @loadable(u'load')
   def rating(self):
-    """str.  The MPAA rating given to this anime.
+    """The MPAA rating given to this anime.
     """
     return self._rating
 
   @property
   @loadable(u'load_characters')
   def voice_actors(self):
-    """
-      dict. A voice actors dict with::
-
-        keys -- a myanimelist.person.Person object of the voice actor
-        values -- a dict containing info about the role played, e.g. {'role': 'Main', 'character': myanimelist.character.Character(1)}
+    """A voice actors dict with :class:`myanimelist.person.Person` objects of the voice actors as keys, and dicts containing info about the roles played, e.g. {'role': 'Main', 'character': myanimelist.character.Character(1)} as values.
     """
     return self._voice_actors
 
   @property
   @loadable(u'load_characters')
   def staff(self):
-    """
-      dict. A staff dict with::
-
-        keys -- a myanimelist.person.Person object of the staff member
-        values -- a list containing the various duties performed by this staff member.
+    """A staff dict with :class:`myanimelist.person.Person` objects of the staff members as keys, and lists containing the various duties performed by staff members as values.
     """
     return self._staff
