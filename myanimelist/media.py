@@ -64,6 +64,17 @@ class Media(Base):
     pass
 
   def __init__(self, session, id):
+    """Creates an instance of Media.
+
+    :type session: :class:`myanimelist.session.Session`
+    :param session: A valid MAL session.
+
+    :type id: int
+    :param id: The media's ID.
+
+    :raises: :class:`.InvalidMediaError`
+
+    """
     super(Media, self).__init__(session)
     self.id = id
     if not isinstance(self.id, int) or int(self.id) < 1:

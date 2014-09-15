@@ -56,9 +56,6 @@ class Anime(media.Media):
     :type anime_id: int
     :param anime_id: The desired anime's ID on MAL
 
-    :rtype: :class:`.Anime`
-    :return: the desired anime
-
     :raises: :class:`.InvalidAnimeError`
 
     """
@@ -236,7 +233,7 @@ class Anime(media.Media):
   @property
   @loadable(u'load')
   def aired(self):
-    """A tuple(2) containing up to two datetime.date objects representing the start and end dates of this anime's airing.
+    """A tuple(2) containing up to two :class:`datetime.date` objects representing the start and end dates of this anime's airing.
 
       Potential configurations:
 

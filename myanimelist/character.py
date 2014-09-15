@@ -8,6 +8,8 @@ import utilities
 from base import Base, Error, loadable
 
 class MalformedCharacterPageError(Error):
+  """Indicates that a character-related page on MAL has irreparably broken markup in some way.
+  """
   def __init__(self, character_id, html, message=None):
     super(MalformedCharacterPageError, self).__init__(message=message)
     self.character_id = int(character_id)
@@ -23,6 +25,8 @@ class MalformedCharacterPageError(Error):
     ]).encode(u'utf-8')
 
 class InvalidCharacterError(Error):
+  """Indicates that the character requested does not exist on MAL.
+  """
   def __init__(self, character_id, message=None):
     super(InvalidCharacterError, self).__init__(message=message)
     self.character_id = character_id
