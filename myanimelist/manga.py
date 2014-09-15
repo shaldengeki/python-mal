@@ -57,9 +57,6 @@ class Manga(media.Media):
     :type manga_id: int
     :param manga_id: The desired manga's ID on MAL
 
-    :rtype: :class:`.Manga`
-    :return: the desired manga
-
     :raises: :class:`.InvalidMangaError`
 
     """

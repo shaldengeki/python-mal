@@ -56,9 +56,6 @@ class Anime(media.Media):
     :type anime_id: int
     :param anime_id: The desired anime's ID on MAL
 
-    :rtype: :class:`.Anime`
-    :return: the desired anime
-
     :raises: :class:`.InvalidAnimeError`
 
     """
