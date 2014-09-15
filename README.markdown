@@ -11,6 +11,7 @@ Dependencies
 - BeautifulSoup 4
 - pytz
 - requests
+- lxml
 - nose (only if you want to run tests, though!)
 
 Installation
@@ -18,8 +19,8 @@ Installation
 
 After cloning the repository, navigate to the directory and run `python setup.py install`.
 
-Usage
-=====
+Getting Started
+===============
 
 The `myanimelist.session.Session` class handles requests to MAL, so you'll want to create one first:
 
@@ -41,6 +42,11 @@ Objects in python-mal are lazy-loading: they won't go out and fetch MAL info unt
       print ""
 
 You'll note that there's a pause while Cowboy Bebop's information is fetched from MAL.
+
+Documentation
+=============
+
+To find out more about what `python-mal` is capable of, [visit the docs here](http://python-mal.readthedocs.org/en/latest/index.html). 
 
 Testing
 =======
