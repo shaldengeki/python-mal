@@ -244,8 +244,6 @@ class Media(Base):
     :rtype: dict
     :return: media stats attributes.
 
-    :raises: InvalidMediaError, MalformedMediaPageError
-      
     """
     media_info = self.parse_sidebar(media_page)
     verb_progressive = self.consuming_verb + u'ing'
@@ -311,8 +309,6 @@ class Media(Base):
     :rtype: dict
     :return: character attributes.
 
-    :raises: InvalidMediaError, MalformedMediaPageError
-      
     """
     media_info = self.parse_sidebar(character_page)
     character_title = filter(lambda x: u'Characters' in x.text, character_page.find_all(u'h2'))
@@ -340,8 +336,6 @@ class Media(Base):
     :rtype: :class:`.Media`
     :return: current media object.
 
-    :raises: InvalidMediaError, MalformedMediaPageError
-      
     """
     media_page = self.session.session.get(u'http://myanimelist.net/' + self.__class__.__name__.lower() + u'/' + str(self.id)).text
     self.set(self.parse(utilities.get_clean_dom(media_page)))
@@ -353,8 +347,6 @@ class Media(Base):
     :rtype: :class:`.Media`
     :return: current media object.
 
-    :raises: InvalidMediaError, MalformedMediaPageError
-      
     """
     stats_page = self.session.session.get(u'http://myanimelist.net/' + self.__class__.__name__.lower() + u'/' + str(self.id) + u'/' + utilities.urlencode(self.title) + u'/stats').text
     self.set(self.parse_stats(utilities.get_clean_dom(stats_page)))
@@ -366,8 +358,6 @@ class Media(Base):
     :rtype: :class:`.Media`
     :return: current media object.
 
-    :raises: InvalidMediaError, MalformedMediaPageError
-      
     """
     characters_page = self.session.session.get(u'http://myanimelist.net/' + self.__class__.__name__.lower() + u'/' + str(self.id) + u'/' + utilities.urlencode(self.title) + u'/characters').text
     self.set(self.parse_characters(utilities.get_clean_dom(characters_page)))
