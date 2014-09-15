@@ -187,8 +187,6 @@ class Media(Base):
     :rtype: dict
     :return: media attributes.
 
-    :raises: InvalidMediaError, MalformedMediaPageError
-      
     """
     media_info = self.parse_sidebar(media_page)
 
