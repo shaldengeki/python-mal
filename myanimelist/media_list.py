@@ -93,7 +93,7 @@ class MediaList(Base):
       end = None
 
     # look up the given media type's status terms.
-    status_terms = getattr(self.session, self.type)(1).status_terms
+    status_terms = getattr(self.session, self.type)(1)._status_terms
     return {
       'id': int(soup.find('series_' + self.type + 'db_id').text),
       'title': soup.find('series_title').text,

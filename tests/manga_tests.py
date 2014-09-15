@@ -218,8 +218,6 @@ class testMangaClass(object):
     assert self.heinemann in self.monster.characters and self.monster.characters[self.heinemann]['role'] == 'Main'
 
     assert isinstance(self.naruto.characters, dict) and len(self.naruto.characters) > 0
-    print self.ebizou
-    print self.naruto.characters
     assert self.ebizou in self.naruto.characters and self.naruto.characters[self.ebizou]['role'] == 'Supporting'
 
     assert isinstance(self.tomoyo_after.characters, dict) and len(self.tomoyo_after.characters) > 0
