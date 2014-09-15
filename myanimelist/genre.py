@@ -5,32 +5,13 @@ import bs4
 import re
 
 import utilities
-from base import Base, Error, loadable
+from base import Base, MalformedPageError, InvalidBaseError, loadable
 
-class MalformedGenrePageError(Error):
-  def __init__(self, genre_id, html, message=None):
-    super(MalformedGenrePageError, self).__init__(message=message)
-    self.genre_id = int(genre_id)
-    if isinstance(html, unicode):
-      self.html = html
-    else:
-      self.html = str(html).decode(u'utf-8')
-  def __str__(self):
-    return "\n".join([
-      super(MalformedGenrePageError, self).__str__(),
-      "ID: " + unicode(self.genre_id),
-      "HTML: " + self.html
-    ]).encode(u'utf-8')
+class MalformedGenrePageError(MalformedPageError):
+  pass
 
-class InvalidGenreError(Error):
-  def __init__(self, genre_id, message=None):
-    super(InvalidGenreError, self).__init__(message=message)
-    self.genre_id = genre_id
-  def __str__(self):
-    return "\n".join([
-      super(InvalidGenreError, self).__str__(),
-      "ID: " + unicode(self.genre_id)
-    ])
+class InvalidGenreError(InvalidBaseError):
+  pass
 
 class Genre(Base):
   def __init__(self, session, genre_id):

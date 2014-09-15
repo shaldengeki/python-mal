@@ -8,38 +8,13 @@ import datetime
 import urllib
 
 import utilities
-from base import Base, Error, loadable
+from base import Base, MalformedPageError, InvalidBaseError, loadable
 
-class MalformedMediaListPageError(Error):
-  def __init__(self, username, html, message=None):
-    super(MalformedMediaListPageError, self).__init__(message=message)
-    if isinstance(username, unicode):
-      self.username = username
-    else:
-      self.username = str(username).decode(u'utf-8')
-    if isinstance(html, unicode):
-      self.html = html
-    else:
-      self.html = str(html).decode(u'utf-8')
-  def __str__(self):
-    return "\n".join([
-      super(MalformedMediaListPageError, self).__str__(),
-      "Username: " + unicode(self.username),
-      "HTML: " + self.html
-    ]).encode(u'utf-8')
+class MalformedMediaListPageError(MalformedPageError):
+  pass
 
-class InvalidMediaListError(Error):
-  def __init__(self, username, message=None):
-    super(InvalidMediaListError, self).__init__(message=message)
-    if isinstance(username, unicode):
-      self.username = username
-    else:
-      self.username = str(username).decode(u'utf-8')
-  def __str__(self):
-    return "\n".join([
-      super(InvalidMediaListError, self).__str__(),
-      "Username: " + unicode(self.username)
-    ])
+class InvalidMediaListError(InvalidBaseError):
+  pass
 
 class MediaList(Base):
   __metaclass__ = abc.ABCMeta

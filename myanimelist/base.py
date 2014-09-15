@@ -21,6 +21,38 @@ class Error(Exception):
   def __str__(self):
     return unicode(self.message) if self.message is not None else u""
 
+class MalformedPageError(Error):
+  """Indicates that a page on MAL has broken markup in some way.
+  """
+  def __init__(self, id, html, message=None):
+    super(MalformedPageError, self).__init__(message=message)
+    if isinstance(id, unicode):
+      self.id = id
+    else:
+      self.id = str(id).decode(u'utf-8')
+    if isinstance(html, unicode):
+      self.html = html
+    else:
+      self.html = str(html).decode(u'utf-8')
+  def __str__(self):
+    return "\n".join([
+      super(MalformedPageError, self).__str__(),
+      "ID: " + self.id,
+      "HTML: " + self.html
+    ]).encode(u'utf-8')
+
+class InvalidBaseError(Error):
+  """Indicates that the particular resource instance requested does not exist on MAL.
+  """
+  def __init__(self, id, message=None):
+    super(InvalidBaseError, self).__init__(message=message)
+    self.id = id
+  def __str__(self):
+    return "\n".join([
+      super(InvalidBaseError, self).__str__(),
+      "ID: " + unicode(self.id)
+    ])
+
 def loadable(func_name):
   """Decorator for getters that require a load() upon first access.
 

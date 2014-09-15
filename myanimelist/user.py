@@ -6,38 +6,13 @@ import re
 import urllib
 
 import utilities
-from base import Base, Error, loadable
+from base import Base, MalformedPageError, InvalidBaseError, loadable
 
-class MalformedUserPageError(Error):
-  def __init__(self, username, html, message=None):
-    super(MalformedUserPageError, self).__init__(message=message)
-    if isinstance(username, unicode):
-      self.username = username
-    else:
-      self.username = str(username).decode(u'utf-8')
-    if isinstance(html, unicode):
-      self.html = html
-    else:
-      self.html = str(html).decode(u'utf-8')
-  def __str__(self):
-    return "\n".join([
-      super(MalformedUserPageError, self).__str__(),
-      "Username: " + unicode(self.username),
-      "HTML: " + self.html
-    ]).encode(u'utf-8')
+class MalformedUserPageError(MalformedPageError):
+  pass
 
-class InvalidUserError(Error):
-  def __init__(self, username, message=None):
-    super(InvalidUserError, self).__init__(message=message)
-    if isinstance(username, unicode):
-      self.username = username
-    else:
-      self.username = str(username).decode(u'utf-8')
-  def __str__(self):
-    return "\n".join([
-      super(InvalidUserError, self).__str__(),
-      "Username: " + unicode(self.username)
-    ])
+class InvalidUserError(InvalidBaseError):
+  pass
 
 class User(Base):
   _id_attribute = "username"

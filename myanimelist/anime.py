@@ -5,12 +5,13 @@ import re
 
 import utilities
 import media
-from base import Error, loadable
+from base import loadable
 
 class MalformedAnimePageError(media.MalformedMediaPageError):
   """Indicates that an anime-related page on MAL has irreparably broken markup in some way.
   """
   pass
+
 class InvalidAnimeError(media.InvalidMediaError):
   """Indicates that the anime requested does not exist on MAL.
   """

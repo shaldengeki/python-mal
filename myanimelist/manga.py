@@ -5,14 +5,12 @@ from base import Base, Error, loadable
 import media
 
 class MalformedMangaPageError(media.MalformedMediaPageError):
-  """
-    Indicates that a manga-related page on MAL has irreparably broken markup in some way.
+  """Indicates that a manga-related page on MAL has irreparably broken markup in some way.
   """
   pass
 
 class InvalidMangaError(media.InvalidMediaError):
-  """
-    Indicates that the manga requested does not exist on MAL.
+  """Indicates that the manga requested does not exist on MAL.
   """
   pass
 

@@ -5,36 +5,17 @@ import bs4
 import re
 
 import utilities
-from base import Base, Error, loadable
+from base import Base, MalformedPageError, InvalidBaseError, loadable
 
-class MalformedCharacterPageError(Error):
+class MalformedCharacterPageError(MalformedPageError):
   """Indicates that a character-related page on MAL has irreparably broken markup in some way.
   """
-  def __init__(self, character_id, html, message=None):
-    super(MalformedCharacterPageError, self).__init__(message=message)
-    self.character_id = int(character_id)
-    if isinstance(html, unicode):
-      self.html = html
-    else:
-      self.html = str(html).decode(u'utf-8')
-  def __str__(self):
-    return "\n".join([
-      super(MalformedCharacterPageError, self).__str__(),
-      "ID: " + unicode(self.character_id),
-      "HTML: " + self.html
-    ]).encode(u'utf-8')
+  pass
 
-class InvalidCharacterError(Error):
+class InvalidCharacterError(InvalidBaseError):
   """Indicates that the character requested does not exist on MAL.
   """
-  def __init__(self, character_id, message=None):
-    super(InvalidCharacterError, self).__init__(message=message)
-    self.character_id = character_id
-  def __str__(self):
-    return "\n".join([
-      super(InvalidCharacterError, self).__str__(),
-      "ID: " + unicode(self.character_id)
-    ])
+  pass
 
 class Character(Base):
   def __init__(self, session, character_id):

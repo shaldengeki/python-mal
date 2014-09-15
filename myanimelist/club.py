@@ -5,32 +5,13 @@ import bs4
 import re
 
 import utilities
-from base import Base, Error, loadable
+from base import Base, MalformedPageError, InvalidBaseError, loadable
 
-class MalformedClubPageError(Error):
-  def __init__(self, club_id, html, message=None):
-    super(MalformedClubPageError, self).__init__(message=message)
-    self.club_id = int(club_id)
-    if isinstance(html, unicode):
-      self.html = html
-    else:
-      self.html = str(html).decode(u'utf-8')
-  def __str__(self):
-    return "\n".join([
-      super(MalformedClubPageError, self).__str__(),
-      "ID: " + unicode(self.club_id),
-      "HTML: " + self.html
-    ]).encode(u'utf-8')
+class MalformedClubPageError(MalformedPageError):
+  pass
 
-class InvalidClubError(Error):
-  def __init__(self, club_id, message=None):
-    super(InvalidClubError, self).__init__(message=message)
-    self.club_id = club_id
-  def __str__(self):
-    return "\n".join([
-      super(InvalidClubError, self).__str__(),
-      "ID: " + unicode(self.club_id)
-    ])
+class InvalidClubError(InvalidBaseError):
+  pass
 
 class Club(Base):
   def __init__(self, session, club_id):

@@ -5,32 +5,13 @@ import bs4
 import re
 
 import utilities
-from base import Base, Error, loadable
+from base import Base, MalformedPageError, InvalidBaseError, loadable
 
-class MalformedPersonPageError(Error):
-  def __init__(self, person_id, html, message=None):
-    super(MalformedPersonPageError, self).__init__(message=message)
-    self.person_id = int(person_id)
-    if isinstance(html, unicode):
-      self.html = html
-    else:
-      self.html = str(html).decode(u'utf-8')
-  def __str__(self):
-    return "\n".join([
-      super(MalformedPersonPageError, self).__str__(),
-      "ID: " + unicode(self.person_id),
-      "HTML: " + self.html
-    ]).encode(u'utf-8')
+class MalformedPersonPageError(MalformedPageError):
+  pass
 
-class InvalidPersonError(Error):
-  def __init__(self, person_id, message=None):
-    super(InvalidPersonError, self).__init__(message=message)
-    self.person_id = person_id
-  def __str__(self):
-    return "\n".join([
-      super(InvalidPersonError, self).__str__(),
-      "ID: " + unicode(self.person_id)
-    ])
+class InvalidPersonError(InvalidBaseError):
+  pass
 
 class Person(Base):
   def __init__(self, session, person_id):

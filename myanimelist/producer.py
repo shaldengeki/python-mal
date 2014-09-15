@@ -5,17 +5,13 @@ import bs4
 import re
 
 import utilities
-from base import Base, Error, loadable
+from base import Base, MalformedPageError, InvalidBaseError, loadable
 
-class InvalidProducerError(Error):
-  def __init__(self, producer_id, message=None):
-    super(InvalidProducerError, self).__init__(message=message)
-    self.producer_id = producer_id
-  def __str__(self):
-    return "\n".join([
-      super(InvalidProducerError, self).__str__(),
-      "ID: " + unicode(self.producer_id)
-    ])
+class MalformedProducerPageError(MalformedPageError):
+  pass
+
+class InvalidProducerError(InvalidBaseError):
+  pass
 
 class Producer(Base):
   def __init__(self, session, producer_id):

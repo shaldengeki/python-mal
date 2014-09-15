@@ -5,32 +5,13 @@ import bs4
 import re
 
 import utilities
-from base import Base, Error, loadable
+from base import Base, MalformedPageError, InvalidBaseError, loadable
 
-class MalformedPublicationPageError(Error):
-  def __init__(self, publication_id, html, message=None):
-    super(MalformedPublicationPageError, self).__init__(message=message)
-    self.publication_id = int(publication_id)
-    if isinstance(html, unicode):
-      self.html = html
-    else:
-      self.html = str(html).decode(u'utf-8')
-  def __str__(self):
-    return "\n".join([
-      super(MalformedPublicationPageError, self).__str__(),
-      "ID: " + unicode(self.publication_id),
-      "HTML: " + self.html
-    ]).encode(u'utf-8')
+class MalformedPublicationPageError(MalformedPageError):
+  pass
 
-class InvalidPublicationError(Error):
-  def __init__(self, publication_id, message=None):
-    super(InvalidPublicationError, self).__init__(message=message)
-    self.publication_id = publication_id
-  def __str__(self):
-    return "\n".join([
-      super(InvalidPublicationError, self).__str__(),
-      "ID: " + unicode(self.publication_id)
-    ])
+class InvalidPublicationError(InvalidBaseError):
+  pass
 
 class Publication(Base):
   def __init__(self, session, publication_id):

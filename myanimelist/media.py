@@ -6,36 +6,17 @@ import decimal
 import re
 
 import utilities
-from base import Base, Error, loadable
+from base import Base, MalformedPageError, InvalidBaseError, loadable
 
-class MalformedMediaPageError(Error):
+class MalformedMediaPageError(MalformedPageError):
   """Indicates that a media-related page on MAL has broken markup in some way.
   """
-  def __init__(self, media_id, html, message=None):
-    super(MalformedMediaPageError, self).__init__(message=message)
-    self.media_id = int(media_id)
-    if isinstance(html, unicode):
-      self.html = html
-    else:
-      self.html = str(html).decode(u'utf-8')
-  def __str__(self):
-    return "\n".join([
-      super(MalformedMediaPageError, self).__str__(),
-      "ID: " + unicode(self.media_id),
-      "HTML: " + self.html
-    ]).encode(u'utf-8')
+  pass
 
-class InvalidMediaError(Error):
+class InvalidMediaError(InvalidBaseError):
   """Indicates that the media requested does not exist on MAL.
   """
-  def __init__(self, media_id, message=None):
-    super(InvalidMediaError, self).__init__(message=message)
-    self.media_id = media_id
-  def __str__(self):
-    return "\n".join([
-      super(InvalidMediaError, self).__str__(),
-      "ID: " + unicode(self.media_id)
-    ])
+  pass
 
 class Media(Base):
   """Abstract base class for all media resources on MAL.
