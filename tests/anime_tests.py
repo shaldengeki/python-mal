@@ -11,22 +11,32 @@ class testAnimeClass(object):
   def setUpClass(self):
     self.session = myanimelist.session.Session()
     self.bebop = self.session.anime(1)
+    self.sunrise = self.session.producer(14)
     self.hex = self.session.character(94717)
     self.hex_va = self.session.person(5766)
     self.bebop_side_story = self.session.anime(5)
+
     self.spicy_wolf = self.session.anime(2966)
     self.holo = self.session.character(7373)
     self.holo_va = self.session.person(70)
     self.spicy_wolf_sequel = self.session.anime(6007)
+    self.kadokawa = self.session.producer(352)
+
     self.space_dandy = self.session.anime(20057)
     self.toaster = self.session.character(110427)
     self.toaster_va = self.session.person(611)
+    self.funi = self.session.producer(102)
+
     self.totoro = self.session.anime(523)
     self.satsuki = self.session.character(267)
     self.satsuki_va = self.session.person(1104)
+    self.gkids = self.session.producer(783)
+
     self.prisma = self.session.anime(18851)
     self.ilya = self.session.character(503)
     self.ilya_va = self.session.person(117)
+    self.silver_link = self.session.producer(300)
+
     self.invalid_anime = self.session.anime(457384754)
     self.latest_anime = myanimelist.anime.Anime.newest(self.session)
 
@@ -101,6 +111,18 @@ class testAnimeClass(object):
     assert self.space_dandy.aired == (datetime.date(month=1, day=5, year=2014),datetime.date(month=3,day=27,year=2014))
     assert self.totoro.aired == (datetime.date(month=4, day=16, year=1988),)
     assert self.prisma.aired == (datetime.date(month=3, day=10, year=2014),)
+
+  def testProducers(self):
+    assert isinstance(self.bebop.producers, list) and len(self.bebop.producers) > 0
+    assert self.sunrise in self.bebop.producers
+    assert isinstance(self.spicy_wolf.producers, list) and len(self.spicy_wolf.producers) > 0
+    assert self.kadokawa in self.spicy_wolf.producers
+    assert isinstance(self.space_dandy.producers, list) and len(self.space_dandy.producers) > 0
+    assert self.funi in self.space_dandy.producers
+    assert isinstance(self.totoro.producers, list) and len(self.totoro.producers) > 0
+    assert self.gkids in self.totoro.producers
+    assert isinstance(self.prisma.producers, list) and len(self.prisma.producers) > 0
+    assert self.silver_link in self.prisma.producers
 
   def testDuration(self):
     assert self.spicy_wolf.duration.total_seconds() == 1440

@@ -126,7 +126,11 @@ class Anime(media.Media):
     producers_tag = info_panel_first.find(text=u'Producers:').parent.parent
     utilities.extract_tags(producers_tag.find_all(u'span', {'class': 'dark_text'}))
     utilities.extract_tags(producers_tag.find_all(u'sup'))
-    anime_info[u'producers'] = producers_tag.text.strip().split(u', ')
+    anime_info[u'producers'] = []
+    for producer_link in producers_tag.find_all('a'):
+      link_parts = producer_link.get('href').split('p=')
+      # of the form: /anime.php?p=14
+      anime_info[u'producers'].append(self.session.producer(int(link_parts[1])).set({'name': producer_link.text}))
 
     duration_tag = info_panel_first.find(text=u'Duration:').parent.parent
     utilities.extract_tags(duration_tag.find_all(u'span', {'class': 'dark_text'}))
