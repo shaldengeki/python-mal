@@ -4,9 +4,7 @@
 Getting Started with myanimelist
 ================================
 
-This tutorial will walk you through installing ``myanimelist``, as well how to use it.
-
-This tutorial assumes you are familiar with Python.
+This tutorial will walk you through installing ``myanimelist``, as well how to use it. It assumes you are familiar with Python; if you're not, please look up `one of <http://www.diveintopython.net/toc/index.html>`_ `the many <http://learnpythonthehardway.org/book/>`_ `fantastic Python tutorials <https://developers.google.com/edu/python/>`_ out there before continuing.
 
 Installing python-mal
 ---------------------
