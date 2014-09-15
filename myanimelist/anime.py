@@ -236,7 +236,7 @@ class Anime(media.Media):
   @property
   @loadable(u'load')
   def aired(self):
-    """A tuple(2) containing up to two datetime.date objects representing the start and end dates of this anime's airing.
+    """A tuple(2) containing up to two :class:`datetime.date` objects representing the start and end dates of this anime's airing.
 
       Potential configurations:
 
