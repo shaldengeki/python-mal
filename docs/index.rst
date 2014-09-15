@@ -37,6 +37,7 @@ Additional Resources
    :glob:
 
    getting_started
+   modules
 
 Indices and tables
 ==================

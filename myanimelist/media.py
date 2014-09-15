@@ -47,16 +47,19 @@ class Media(Base):
   @abc.abstractproperty
   def _status_terms(self):
     """
-      dict. A status dict with::
+    :rtype: dict
+    A status dict with::
 
-        keys -- int statuses
-        values -- string statuses e.g. "Airing"
+      keys -- int statuses
+      values -- string statuses e.g. "Airing"
     """
     pass
 
   @abc.abstractproperty
   def _consuming_verb(self):
-    """str. the verb used to consume this media, e.g. "read"
+    """
+    :rtype: str
+    :return: the verb used to consume this media, e.g. "read"
     """
     pass
 
@@ -86,14 +89,13 @@ class Media(Base):
   def parse_sidebar(self, media_page):
     """Parses the DOM and returns media attributes in the sidebar.
 
-    Args: 
-      media_page (bs4.BeautifulSoup): MAL media page's DOM
+    :type media_page: :class:`bs4.BeautifulSoup`
+    :param media_page: MAL media page's DOM
 
-    Returns:
-      dict. media attributes.
+    :rtype: dict
+    :return: media attributes.
 
-    Raises:
-      InvalidMediaError, MalformedMediaPageError
+    :raises: InvalidMediaError, MalformedMediaPageError
 
     """
     media_info = {}
@@ -187,14 +189,13 @@ class Media(Base):
   def parse(self, media_page):
     """Parses the DOM and returns media attributes in the main-content area.
 
-    Args: 
-      media_page (bs4.BeautifulSoup): MAL media page's DOM
+    :type media_page: :class:`bs4.BeautifulSoup`
+    :param media_page: MAL media page's DOM
 
-    Returns:
-      dict. media attributes.
+    :rtype: dict
+    :return: media attributes.
 
-    Raises:
-      InvalidMediaError, MalformedMediaPageError
+    :raises: InvalidMediaError, MalformedMediaPageError
       
     """
     media_info = self.parse_sidebar(media_page)
@@ -244,17 +245,16 @@ class Media(Base):
       media_info[u'related'] = None
     return media_info
 
-  def parse_stats(self, anime_page):
+  def parse_stats(self, media_page):
     """Parses the DOM and returns media statistics attributes.
 
-    Args: 
-      media_page (bs4.BeautifulSoup): MAL media stats page's DOM
+    :type media_page: :class:`bs4.BeautifulSoup`
+    :param media_page: MAL media stats page's DOM
 
-    Returns:
-      dict. media statistics attributes.
+    :rtype: dict
+    :return: media stats attributes.
 
-    Raises:
-      InvalidMediaError, MalformedMediaPageError
+    :raises: InvalidMediaError, MalformedMediaPageError
       
     """
     media_info = self.parse_sidebar(media_page)
@@ -315,14 +315,13 @@ class Media(Base):
   def parse_characters(self, character_page):
     """Parses the DOM and returns media character attributes in the sidebar.
 
-    Args: 
-      media_page (bs4.BeautifulSoup): MAL media character page's DOM
+    :type media_page: :class:`bs4.BeautifulSoup`
+    :param media_page: MAL character page's DOM
 
-    Returns:
-      dict. media character attributes.
+    :rtype: dict
+    :return: character attributes.
 
-    Raises:
-      InvalidMediaError, MalformedMediaPageError
+    :raises: InvalidMediaError, MalformedMediaPageError
       
     """
     media_info = self.parse_sidebar(character_page)
@@ -348,11 +347,10 @@ class Media(Base):
   def load(self):
     """Fetches the MAL media page and sets the current media's attributes.
 
-    Returns:
-      itself.
+    :rtype: :class:`.Media`
+    :return: current media object.
 
-    Raises:
-      InvalidMediaError, MalformedMediaPageError
+    :raises: InvalidMediaError, MalformedMediaPageError
       
     """
     media_page = self.session.session.get(u'http://myanimelist.net/' + self.__class__.__name__.lower() + u'/' + str(self.id)).text
@@ -362,11 +360,10 @@ class Media(Base):
   def load_stats(self):
     """Fetches the MAL media statistics page and sets the current media's statistics attributes.
 
-    Returns:
-      itself.
+    :rtype: :class:`.Media`
+    :return: current media object.
 
-    Raises:
-      InvalidMediaError, MalformedMediaPageError
+    :raises: InvalidMediaError, MalformedMediaPageError
       
     """
     stats_page = self.session.session.get(u'http://myanimelist.net/' + self.__class__.__name__.lower() + u'/' + str(self.id) + u'/' + utilities.urlencode(self.title) + u'/stats').text
@@ -376,11 +373,10 @@ class Media(Base):
   def load_characters(self):
     """Fetches the MAL media characters page and sets the current media's character attributes.
 
-    Returns:
-      itself.
+    :rtype: :class:`.Media`
+    :return: current media object.
 
-    Raises:
-      InvalidMediaError, MalformedMediaPageError
+    :raises: InvalidMediaError, MalformedMediaPageError
       
     """
     characters_page = self.session.session.get(u'http://myanimelist.net/' + self.__class__.__name__.lower() + u'/' + str(self.id) + u'/' + utilities.urlencode(self.title) + u'/characters').text
@@ -390,146 +386,119 @@ class Media(Base):
   @property
   @loadable(u'load')
   def title(self):
-    """str. media's title.
+    """media's title.
     """
     return self._title
 
   @property
   @loadable(u'load')
   def picture(self):
-    """str. URL of media's primary pictures.
+    """ URL of media's primary pictures.
     """
     return self._picture
 
   @property
   @loadable(u'load')
   def alternative_titles(self):
-    """
-      dict. alternative titles, with::
-
-        keys -- types of titles, e.g. 'Japanese', 'English', or 'Synonyms'
-        values -- lists of said alternative titles.
+    """alternative titles dict, with types of titles, e.g. 'Japanese', 'English', or 'Synonyms' as keys, and lists of said alternative titles as values.
     """
     return self._alternative_titles
 
   @property
   @loadable(u'load')
   def type(self):
-    """str. type of this media, e.g. 'TV' or 'Manga' or 'Movie'
+    """ type of this media, e.g. 'TV' or 'Manga' or 'Movie'
     """
     return self._type
 
   @property
   @loadable(u'load')
   def status(self):
-    """str. publication status, e.g. 'Finished Airing'
+    """ publication status, e.g. 'Finished Airing'
     """
     return self._status
 
   @property
   @loadable(u'load')
   def genres(self):
-    """ list. containing myanimelist.genre.Genre objects.
+    """ a list of :class:`myanimelist.genre.Genre` objects associated with this media.
     """
     return self._genres
 
   @property
   @loadable(u'load')
   def score(self):
-    """
-      tuple(2) with::
+    """a tuple(2) containing an instance of decimal.Decimal storing the aggregate score, weighted or non-weighted, and an int storing the number of ratings
 
-        0 -- an instance of decimal.Decimal storing the aggregate score, weighted or non-weighted
-        1 -- an int storing the number of ratings
     """
     return self._score
 
   @property
   @loadable(u'load')
   def rank(self):
-    """int. rank.
+    """ score rank.
     """
     return self._rank
 
   @property
   @loadable(u'load')
   def popularity(self):
-    """int. popularity rank.
+    """ popularity rank.
     """
     return self._popularity
 
   @property
   @loadable(u'load')
   def members(self):
-    """int. members.
+    """ number of members.
     """
     return self._members
 
   @property
   @loadable(u'load')
   def favorites(self):
-    """int. number of users who favourited this media.
+    """ number of users who favourited this media.
     """
     return self._favorites
 
   @property
   @loadable(u'load')
   def popular_tags(self):
-    """
-      dict. tags dict with::
-
-        keys -- myanimelist.tag.Tag objects
-        values -- the number of tags
+    """tags dict with :class:`myanimelist.tag.Tag` objects as keys, and the number of tags as values.
     """
     return self._popular_tags
   
   @property
   @loadable(u'load')
   def synopsis(self):
-    """str. media synopsis.
+    """media synopsis as a string.
     """
     return self._synopsis
 
   @property
   @loadable(u'load')
   def related(self):
-    """
-      dict. related media, with::
-
-        keys -- strings of relation types, e.g. 'Sequel'
-        values -- lists containing instances of myanimelist.media.Media subclasses.
+    """related media dict, with strings of relation types, e.g. 'Sequel' as keys, and lists containing instances of :class:`.Media` subclasses as values.
     """
     return self._related
 
   @property
   @loadable(u'load_characters')
   def characters(self):
-    """
-      dict. characters, with::
-
-        keys -- myanimelist.character.Character objects
-        values -- a dict with attributes of this role, e.g. 'role': 'Main'
+    """character dict, with :class:`myanimelist.character.Character` objects as keys, and a dict with attributes of this role, e.g. 'role': 'Main' as values.
     """
     return self._characters
 
   @property
   @loadable(u'load_stats')
   def status_stats(self):
-    """
-      dict. status statistics, with::
-
-        keys -- strings of statuses, e.g. 'on_hold'
-        values -- int number of users
+    """status statistics dict, with strings of statuses, e.g. 'on_hold' as keys, and an int number of users as values.
     """
     return self._status_stats
 
   @property
   @loadable(u'load_stats')
   def score_stats(self):
-    """
-      dict. score statistics, with::
-
-        keys -- int scores from 1-10
-        values -- int number of users
+    """score statistics dict, with int scores from 1-10 as keys, and an int number of users as values.
     """
     return self._score_stats
