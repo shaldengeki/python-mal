@@ -49,31 +49,31 @@ class testAnimeListClass(object):
     assert self.shal.type == u'anime'
 
   def testList(self):
-    assert isinstance(self.shal.list, dict) and len(self.shal.list) == 146
-    assert self.fz in self.shal.list and self.clannad in self.shal.list and self.trigun in self.shal.list
-    assert self.shal.list[self.fz][u'status'] == u'Watching' and self.shal.list[self.clannad][u'status'] == u'Completed' and self.shal.list[self.trigun][u'status'] == u'Plan to Watch'
-    assert self.shal.list[self.fz][u'score'] == None and self.shal.list[self.clannad][u'score'] == 9 and self.shal.list[self.trigun][u'score'] == None
-    assert self.shal.list[self.fz][u'episodes_watched'] == 6 and self.shal.list[self.clannad][u'episodes_watched'] == 23 and self.shal.list[self.trigun][u'episodes_watched'] == 6
-    assert self.shal.list[self.fz][u'started'] == None and self.shal.list[self.clannad][u'started'] == None and self.shal.list[self.trigun][u'started'] == None
-    assert self.shal.list[self.fz][u'finished'] == None and self.shal.list[self.clannad][u'finished'] == None and self.shal.list[self.trigun][u'finished'] == None
+    assert isinstance(self.shal.list, dict) and len(self.shal) == 146
+    assert self.fz in self.shal and self.clannad in self.shal and self.trigun in self.shal
+    assert self.shal[self.fz][u'status'] == u'Watching' and self.shal[self.clannad][u'status'] == u'Completed' and self.shal[self.trigun][u'status'] == u'Plan to Watch'
+    assert self.shal[self.fz][u'score'] == None and self.shal[self.clannad][u'score'] == 9 and self.shal[self.trigun][u'score'] == None
+    assert self.shal[self.fz][u'episodes_watched'] == 6 and self.shal[self.clannad][u'episodes_watched'] == 23 and self.shal[self.trigun][u'episodes_watched'] == 6
+    assert self.shal[self.fz][u'started'] == None and self.shal[self.clannad][u'started'] == None and self.shal[self.trigun][u'started'] == None
+    assert self.shal[self.fz][u'finished'] == None and self.shal[self.clannad][u'finished'] == None and self.shal[self.trigun][u'finished'] == None
 
-    assert isinstance(self.pl.list, dict) and len(self.pl.list) >= 795
-    assert self.baccano in self.pl.list and self.pokemon in self.pl.list and self.dmc in self.pl.list
-    assert self.pl.list[self.baccano][u'status'] == u'Completed' and self.pl.list[self.pokemon][u'status'] == u'On-Hold' and self.pl.list[self.dmc][u'status'] == u'Dropped'
-    assert self.pl.list[self.baccano][u'score'] == 10 and self.pl.list[self.pokemon][u'score'] == None and self.pl.list[self.dmc][u'score'] == 2
-    assert self.pl.list[self.baccano][u'episodes_watched'] == 13 and self.pl.list[self.pokemon][u'episodes_watched'] == 2 and self.pl.list[self.dmc][u'episodes_watched'] == 1
-    assert self.pl.list[self.baccano][u'started'] == datetime.date(year=2009, month=7, day=27) and self.pl.list[self.pokemon][u'started'] == datetime.date(year=2013, month=10, day=5) and self.pl.list[self.dmc][u'started'] == datetime.date(year=2010, month=9, day=27)
-    assert self.pl.list[self.baccano][u'finished'] == datetime.date(year=2009, month=7, day=28) and self.pl.list[self.pokemon][u'finished'] == None and self.pl.list[self.dmc][u'finished'] == None
+    assert isinstance(self.pl.list, dict) and len(self.pl) >= 795
+    assert self.baccano in self.pl and self.pokemon in self.pl and self.dmc in self.pl
+    assert self.pl[self.baccano][u'status'] == u'Completed' and self.pl[self.pokemon][u'status'] == u'On-Hold' and self.pl[self.dmc][u'status'] == u'Dropped'
+    assert self.pl[self.baccano][u'score'] == 10 and self.pl[self.pokemon][u'score'] == None and self.pl[self.dmc][u'score'] == 2
+    assert self.pl[self.baccano][u'episodes_watched'] == 13 and self.pl[self.pokemon][u'episodes_watched'] == 2 and self.pl[self.dmc][u'episodes_watched'] == 1
+    assert self.pl[self.baccano][u'started'] == datetime.date(year=2009, month=7, day=27) and self.pl[self.pokemon][u'started'] == datetime.date(year=2013, month=10, day=5) and self.pl[self.dmc][u'started'] == datetime.date(year=2010, month=9, day=27)
+    assert self.pl[self.baccano][u'finished'] == datetime.date(year=2009, month=7, day=28) and self.pl[self.pokemon][u'finished'] == None and self.pl[self.dmc][u'finished'] == None
 
-    assert isinstance(self.mona.list, dict) and len(self.mona.list) >= 1822
-    assert self.zombie in self.mona.list and self.lollipop in self.mona.list and self.musume in self.mona.list
-    assert self.mona.list[self.zombie][u'status'] == u'Completed' and self.mona.list[self.lollipop][u'status'] == u'On-Hold' and self.mona.list[self.musume][u'status'] == u'Plan to Watch'
-    assert self.mona.list[self.zombie][u'score'] == 7 and self.mona.list[self.lollipop][u'score'] == None and self.mona.list[self.musume][u'score'] == None
-    assert self.mona.list[self.zombie][u'episodes_watched'] == 2 and self.mona.list[self.lollipop][u'episodes_watched'] == 12 and self.mona.list[self.musume][u'episodes_watched'] == 0
-    assert self.mona.list[self.zombie][u'started'] == None and self.mona.list[self.lollipop][u'started'] == datetime.date(year=2013, month=4, day=14) and self.mona.list[self.musume][u'started'] == None
-    assert self.mona.list[self.zombie][u'finished'] == None and self.mona.list[self.lollipop][u'finished'] == None and self.mona.list[self.musume][u'finished'] == None
+    assert isinstance(self.mona.list, dict) and len(self.mona) >= 1822
+    assert self.zombie in self.mona and self.lollipop in self.mona and self.musume in self.mona
+    assert self.mona[self.zombie][u'status'] == u'Completed' and self.mona[self.lollipop][u'status'] == u'On-Hold' and self.mona[self.musume][u'status'] == u'Plan to Watch'
+    assert self.mona[self.zombie][u'score'] == 7 and self.mona[self.lollipop][u'score'] == None and self.mona[self.musume][u'score'] == None
+    assert self.mona[self.zombie][u'episodes_watched'] == 2 and self.mona[self.lollipop][u'episodes_watched'] == 12 and self.mona[self.musume][u'episodes_watched'] == 0
+    assert self.mona[self.zombie][u'started'] == None and self.mona[self.lollipop][u'started'] == datetime.date(year=2013, month=4, day=14) and self.mona[self.musume][u'started'] == None
+    assert self.mona[self.zombie][u'finished'] == None and self.mona[self.lollipop][u'finished'] == None and self.mona[self.musume][u'finished'] == None
 
-    assert isinstance(self.threger.list, dict) and len(self.threger.list) == 0
+    assert isinstance(self.threger.list, dict) and len(self.threger) == 0
 
   def testStats(self):
     assert isinstance(self.shal.stats, dict) and len(self.shal.stats) > 0

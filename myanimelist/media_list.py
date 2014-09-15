@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import abc
+import collections
 import bs4
 import decimal
 import datetime
@@ -16,10 +17,24 @@ class MalformedMediaListPageError(MalformedPageError):
 class InvalidMediaListError(InvalidBaseError):
   pass
 
-class MediaList(Base):
+class MediaList(Base, collections.Mapping):
   __metaclass__ = abc.ABCMeta
 
   __id_attribute = "username"
+
+  def __getitem__(self, media):
+    return self.list[media]
+
+  def __contains__(self, media):
+    return media in self.list
+
+  def __len__(self):
+    return len(self.list)
+
+  def __iter__(self):
+    for media in self.list:
+      yield media
+
   def __init__(self, session, user_name):
     super(MediaList, self).__init__(session)
     self.username = user_name

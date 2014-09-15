@@ -48,34 +48,34 @@ class testMangaListClass(object):
     assert self.shal.type == u'manga'
 
   def testList(self):
-    assert isinstance(self.shal.list, dict) and len(self.shal.list) == 2
-    assert self.tomoyo_after in self.shal.list and self.fma in self.shal.list
-    assert self.shal.list[self.tomoyo_after][u'status'] == u'Completed' and self.shal.list[self.fma][u'status'] == u'Dropped'
-    assert self.shal.list[self.tomoyo_after][u'score'] == 9 and self.shal.list[self.fma][u'score'] == 6
-    assert self.shal.list[self.tomoyo_after][u'chapters_read'] == 4 and self.shal.list[self.fma][u'chapters_read'] == 73
-    assert self.shal.list[self.tomoyo_after][u'volumes_read'] == 1 and self.shal.list[self.fma][u'volumes_read'] == 18
-    assert self.shal.list[self.tomoyo_after][u'started'] == None and self.shal.list[self.fma][u'started'] == None
-    assert self.shal.list[self.tomoyo_after][u'finished'] == None and self.shal.list[self.fma][u'finished'] == None
+    assert isinstance(self.shal.list, dict) and len(self.shal) == 2
+    assert self.tomoyo_after in self.shal and self.fma in self.shal
+    assert self.shal[self.tomoyo_after][u'status'] == u'Completed' and self.shal[self.fma][u'status'] == u'Dropped'
+    assert self.shal[self.tomoyo_after][u'score'] == 9 and self.shal[self.fma][u'score'] == 6
+    assert self.shal[self.tomoyo_after][u'chapters_read'] == 4 and self.shal[self.fma][u'chapters_read'] == 73
+    assert self.shal[self.tomoyo_after][u'volumes_read'] == 1 and self.shal[self.fma][u'volumes_read'] == 18
+    assert self.shal[self.tomoyo_after][u'started'] == None and self.shal[self.fma][u'started'] == None
+    assert self.shal[self.tomoyo_after][u'finished'] == None and self.shal[self.fma][u'finished'] == None
 
-    assert isinstance(self.pl.list, dict) and len(self.pl.list) >= 45
-    assert self.to_love_ru in self.pl.list and self.amnesia in self.pl.list and self.sao in self.pl.list
-    assert self.pl.list[self.to_love_ru][u'status'] == u'Completed' and self.pl.list[self.amnesia][u'status'] == u'On-Hold' and self.pl.list[self.sao][u'status'] == u'Plan to Read'
-    assert self.pl.list[self.to_love_ru][u'score'] == 6 and self.pl.list[self.amnesia][u'score'] == None and self.pl.list[self.sao][u'score'] == None
-    assert self.pl.list[self.to_love_ru][u'chapters_read'] == 162 and self.pl.list[self.amnesia][u'chapters_read'] == 9 and self.pl.list[self.sao][u'chapters_read'] == 0
-    assert self.pl.list[self.to_love_ru][u'volumes_read'] == 18 and self.pl.list[self.amnesia][u'volumes_read'] == 0 and self.pl.list[self.sao][u'volumes_read'] == 0
-    assert self.pl.list[self.to_love_ru][u'started'] == datetime.date(year=2011, month=9, day=8) and self.pl.list[self.amnesia][u'started'] == datetime.date(year=2010, month=6, day=27) and self.pl.list[self.sao][u'started'] == datetime.date(year=2012, month=9, day=24)
-    assert self.pl.list[self.to_love_ru][u'finished'] == datetime.date(year=2011, month=9, day=16) and self.pl.list[self.amnesia][u'finished'] == None and self.pl.list[self.sao][u'finished'] == None
+    assert isinstance(self.pl.list, dict) and len(self.pl) >= 45
+    assert self.to_love_ru in self.pl and self.amnesia in self.pl and self.sao in self.pl
+    assert self.pl[self.to_love_ru][u'status'] == u'Completed' and self.pl[self.amnesia][u'status'] == u'On-Hold' and self.pl[self.sao][u'status'] == u'Plan to Read'
+    assert self.pl[self.to_love_ru][u'score'] == 6 and self.pl[self.amnesia][u'score'] == None and self.pl[self.sao][u'score'] == None
+    assert self.pl[self.to_love_ru][u'chapters_read'] == 162 and self.pl[self.amnesia][u'chapters_read'] == 9 and self.pl[self.sao][u'chapters_read'] == 0
+    assert self.pl[self.to_love_ru][u'volumes_read'] == 18 and self.pl[self.amnesia][u'volumes_read'] == 0 and self.pl[self.sao][u'volumes_read'] == 0
+    assert self.pl[self.to_love_ru][u'started'] == datetime.date(year=2011, month=9, day=8) and self.pl[self.amnesia][u'started'] == datetime.date(year=2010, month=6, day=27) and self.pl[self.sao][u'started'] == datetime.date(year=2012, month=9, day=24)
+    assert self.pl[self.to_love_ru][u'finished'] == datetime.date(year=2011, month=9, day=16) and self.pl[self.amnesia][u'finished'] == None and self.pl[self.sao][u'finished'] == None
 
-    assert isinstance(self.josh.list, dict) and len(self.josh.list) >= 151
-    assert self.juicy in self.josh.list and self.tsubasa in self.josh.list and self.jojo in self.josh.list
-    assert self.josh.list[self.juicy][u'status'] == u'Completed' and self.josh.list[self.tsubasa][u'status'] == u'Dropped' and self.josh.list[self.jojo][u'status'] == u'Plan to Read'
-    assert self.josh.list[self.juicy][u'score'] == 6 and self.josh.list[self.tsubasa][u'score'] == 6 and self.josh.list[self.jojo][u'score'] == None
-    assert self.josh.list[self.juicy][u'chapters_read'] == 33 and self.josh.list[self.tsubasa][u'chapters_read'] == 27 and self.josh.list[self.jojo][u'chapters_read'] == 0
-    assert self.josh.list[self.juicy][u'volumes_read'] == 2 and self.josh.list[self.tsubasa][u'volumes_read'] == 0 and self.josh.list[self.jojo][u'volumes_read'] == 0
-    assert self.josh.list[self.juicy][u'started'] == None and self.josh.list[self.tsubasa][u'started'] == None and self.josh.list[self.jojo][u'started'] == datetime.date(year=2010, month=9, day=16)
-    assert self.josh.list[self.juicy][u'finished'] == None and self.josh.list[self.tsubasa][u'finished'] == None and self.josh.list[self.jojo][u'finished'] == None
+    assert isinstance(self.josh.list, dict) and len(self.josh) >= 151
+    assert self.juicy in self.josh and self.tsubasa in self.josh and self.jojo in self.josh
+    assert self.josh[self.juicy][u'status'] == u'Completed' and self.josh[self.tsubasa][u'status'] == u'Dropped' and self.josh[self.jojo][u'status'] == u'Plan to Read'
+    assert self.josh[self.juicy][u'score'] == 6 and self.josh[self.tsubasa][u'score'] == 6 and self.josh[self.jojo][u'score'] == None
+    assert self.josh[self.juicy][u'chapters_read'] == 33 and self.josh[self.tsubasa][u'chapters_read'] == 27 and self.josh[self.jojo][u'chapters_read'] == 0
+    assert self.josh[self.juicy][u'volumes_read'] == 2 and self.josh[self.tsubasa][u'volumes_read'] == 0 and self.josh[self.jojo][u'volumes_read'] == 0
+    assert self.josh[self.juicy][u'started'] == None and self.josh[self.tsubasa][u'started'] == None and self.josh[self.jojo][u'started'] == datetime.date(year=2010, month=9, day=16)
+    assert self.josh[self.juicy][u'finished'] == None and self.josh[self.tsubasa][u'finished'] == None and self.josh[self.jojo][u'finished'] == None
 
-    assert isinstance(self.threger.list, dict) and len(self.threger.list) == 0
+    assert isinstance(self.threger.list, dict) and len(self.threger) == 0
 
   def testStats(self):
     assert isinstance(self.shal.stats, dict) and len(self.shal.stats) > 0
