@@ -51,12 +51,11 @@ class Character(Base):
     self._pictures = None
     self._clubs = None
 
-  def parse_sidebar(self, html):
+  def parse_sidebar(self, character_page):
     """
-      Given a MAL character page's HTML, returns a dict with this character's attributes found on the sidebar.
+      Given a MAL character page's DOM, returns a dict with this character's attributes found on the sidebar.
     """
     character_info = {}
-    character_page = bs4.BeautifulSoup(html)
     error_tag = character_page.find(u'div', {'class': 'badresult'})
     if error_tag:
       # MAL says the character does not exist.
@@ -107,12 +106,11 @@ class Character(Base):
 
     return character_info
 
-  def parse(self, html):
+  def parse(self, character_page):
     """
-      Given a MAL character page's HTML, returns a dict with this character's attributes.
+      Given a MAL character page's DOM, returns a dict with this character's attributes.
     """
-    character_info = self.parse_sidebar(html)
-    character_page = bs4.BeautifulSoup(html)
+    character_info = self.parse_sidebar(character_page)
 
     second_col = character_page.find(u'div', {'id': 'content'}).find(u'table').find(u'tr').find_all(u'td', recursive=False)[1]
     name_elt = second_col.find(u'div', {'class': 'normal_header'})
@@ -163,24 +161,20 @@ class Character(Base):
     self._pictures = None
     self._clubs = None
 
-  def parse_favorites(self, html):
-    character_info = self.parse_sidebar(html)
-    favorites_page = bs4.BeautifulSoup(html)
+  def parse_favorites(self, favorites_page):
+    character_info = self.parse_sidebar(favorites_page)
     second_col = favorites_page.find(u'div', {'id': 'content'}).find(u'table').find(u'tr').find_all(u'td', recursive=False)[1]
+
     character_info[u'favorites'] = []
-    curr_elt = second_col.find(u'div', text=u'Users with Favorites').nextSibling
-    while curr_elt is not None:
-      if curr_elt.name == u'a':
-        link_parts = curr_elt.get(u'href').split(u'/')
-        # of the form /profile/shaldengeki
-        character_info[u'favorites'].append(self.session.user(username=link_parts[2]))
-      curr_elt = curr_elt.nextSibling
+    favorite_links = second_col.find_all('a', recursive=False)
+    for link in favorite_links:
+      # of the form /profile/shaldengeki
+      character_info[u'favorites'].append(self.session.user(username=link.text))
 
     return character_info
 
-  def parse_pictures(self, html):
-    character_info = self.parse_sidebar(html)
-    picture_page = bs4.BeautifulSoup(html)
+  def parse_pictures(self, picture_page):
+    character_info = self.parse_sidebar(picture_page)
     second_col = picture_page.find(u'div', {'id': 'content'}).find(u'table').find(u'tr').find_all(u'td', recursive=False)[1]
 
     picture_table = second_col.find(u'table', recursive=False)
@@ -189,9 +183,8 @@ class Character(Base):
       character_info[u'pictures'] = map(lambda img: img.get(u'src').decode('utf-8'), picture_table.find_all(u'img'))
     return character_info
 
-  def parse_clubs(self, html):
-    character_info = self.parse_sidebar(html)
-    clubs_page = bs4.BeautifulSoup(html)
+  def parse_clubs(self, clubs_page):
+    character_info = self.parse_sidebar(clubs_page)
     second_col = clubs_page.find(u'div', {'id': 'content'}).find(u'table').find(u'tr').find_all(u'td', recursive=False)[1]
 
     clubs_header = second_col.find(u'div', text=u'Related Clubs')
@@ -212,16 +205,15 @@ class Character(Base):
       Fetches the MAL character page and sets the current character's attributes.
     """
     character = self.session.session.get(u'http://myanimelist.net/character/' + str(self.id)).text
-    self.set(self.parse(character))
+    self.set(self.parse(utilities.get_clean_dom(character)))
     return self
 
   def load_favorites(self):
     """
       Fetches the MAL character favorites page and sets the current character's attributes.
     """
-    print 'http://myanimelist.net/character/' + str(self.id) + u'/favorites'
     character = self.session.session.get(u'http://myanimelist.net/character/' + str(self.id) + u'/' + utilities.urlencode(self.name) + u'/favorites').text
-    self.set(self.parse_favorites(character))
+    self.set(self.parse_favorites(utilities.get_clean_dom(character)))
     return self
 
   def load_pictures(self):
@@ -229,7 +221,7 @@ class Character(Base):
       Fetches the MAL character pictures page and sets the current character's attributes.
     """
     character = self.session.session.get(u'http://myanimelist.net/character/' + str(self.id) + u'/' + utilities.urlencode(self.name) + u'/pictures').text
-    self.set(self.parse_pictures(character))
+    self.set(self.parse_pictures(utilities.get_clean_dom(character)))
     return self
 
   def load_clubs(self):
@@ -237,7 +229,7 @@ class Character(Base):
       Fetches the MAL character clubs page and sets the current character's attributes.
     """
     character = self.session.session.get(u'http://myanimelist.net/character/' + str(self.id) + u'/' + utilities.urlencode(self.name) + u'/clubs').text
-    self.set(self.parse_clubs(character))
+    self.set(self.parse_clubs(utilities.get_clean_dom(character)))
     return self
 
   @property
