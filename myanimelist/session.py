@@ -206,6 +206,19 @@ class Session(object):
     """
     return manga_list.MangaList(self, username)
 
+  def person(self, person_id):
+    """Creates an instance of myanimelist.Person with the given ID.
+
+    Args:
+      person_id (int):  The desired person's ID.
+
+    Returns:
+      myanimelist.Person.  A new Person instance with the given ID.
+
+    Raises:
+      InvalidPersonError
+    """
+    return person.Person(self, person_id)
   def producer(self, producer_id):
     """Creates an instance of myanimelist.Producer with the given ID.
 
