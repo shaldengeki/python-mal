@@ -155,8 +155,8 @@ class Anime(media.Media):
   def parse_characters(self, character_page):
     """Parses the DOM and returns anime character attributes in the sidebar.
 
-    :type anime_page: :class:`bs4.BeautifulSoup`
-    :param anime_page: MAL anime character page's DOM
+    :type character_page: :class:`bs4.BeautifulSoup`
+    :param character_page: MAL anime character page's DOM
 
     :rtype: dict
     :return: anime character attributes

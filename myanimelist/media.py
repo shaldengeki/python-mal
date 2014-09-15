@@ -303,8 +303,8 @@ class Media(Base):
   def parse_characters(self, character_page):
     """Parses the DOM and returns media character attributes in the sidebar.
 
-    :type media_page: :class:`bs4.BeautifulSoup`
-    :param media_page: MAL character page's DOM
+    :type character_page: :class:`bs4.BeautifulSoup`
+    :param character_page: MAL character page's DOM
 
     :rtype: dict
     :return: character attributes.

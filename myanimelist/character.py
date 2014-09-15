@@ -174,8 +174,8 @@ class Character(Base):
   def parse_favorites(self, favorites_page):
     """Parses the DOM and returns character favorites attributes.
 
-    :type character_page: :class:`bs4.BeautifulSoup`
-    :param character_page: MAL character favorites page's DOM
+    :type favorites_page: :class:`bs4.BeautifulSoup`
+    :param favorites_page: MAL character favorites page's DOM
 
     :rtype: dict
     :return: Character favorites attributes.
@@ -195,8 +195,8 @@ class Character(Base):
   def parse_pictures(self, picture_page):
     """Parses the DOM and returns character pictures attributes.
 
-    :type character_page: :class:`bs4.BeautifulSoup`
-    :param character_page: MAL character pictures page's DOM
+    :type picture_page: :class:`bs4.BeautifulSoup`
+    :param picture_page: MAL character pictures page's DOM
 
     :rtype: dict
     :return: character pictures attributes.
@@ -214,8 +214,8 @@ class Character(Base):
   def parse_clubs(self, clubs_page):
     """Parses the DOM and returns character clubs attributes.
 
-    :type character_page: :class:`bs4.BeautifulSoup`
-    :param character_page: MAL character clubs page's DOM
+    :type clubs_page: :class:`bs4.BeautifulSoup`
+    :param clubs_page: MAL character clubs page's DOM
 
     :rtype: dict
     :return: character clubs attributes.
