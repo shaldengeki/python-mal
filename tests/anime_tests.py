@@ -103,11 +103,11 @@ class testAnimeClass(object):
     assert self.prisma.aired == (datetime.date(month=3, day=10, year=2014),)
 
   def testDuration(self):
-    assert self.spicy_wolf.duration == 24
-    assert self.totoro.duration == 86
-    assert self.space_dandy.duration == 24
-    assert self.bebop.duration == 24
-    assert self.prisma.duration == 25
+    assert self.spicy_wolf.duration.total_seconds() == 1440
+    assert self.totoro.duration.total_seconds() == 5160
+    assert self.space_dandy.duration.total_seconds() == 1440
+    assert self.bebop.duration.total_seconds() == 1440
+    assert self.prisma.duration.total_seconds() == 1500
 
   def testScore(self):
     assert isinstance(self.spicy_wolf.score, tuple)

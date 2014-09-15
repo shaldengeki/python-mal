@@ -1,5 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
+import datetime
 import re
 
 import utilities
@@ -7,24 +8,41 @@ import media
 from base import Error, loadable
 
 class MalformedAnimePageError(media.MalformedMediaPageError):
+  """
+    Indicates that an anime-related page on MAL has irreparably broken markup in some way.
+  """
   pass
 class InvalidAnimeError(media.InvalidMediaError):
+  """
+    Indicates that the anime requested does not exist on MAL.
+  """
   pass
 
 class Anime(media.Media):
-  status_terms = [
+  """Primary interface to anime resources on MAL.
+  """
+  _status_terms = [
     u'Unknown',
     u'Currently Airing',
     u'Finished Airing',
     u'Not yet aired'
   ]
-  consuming_verb = "watch"
+  _consuming_verb = "watch"
 
   @staticmethod
   def newest(session):
-    '''
-      Returns the newest anime on MAL.
-    '''
+    """Fetches the latest anime added to MAL.
+
+    Args:
+      session (myanimelist.session.Session):  A valid MAL session.
+
+
+    Returns:
+      Anime.  the newest anime on MAL.
+
+    Raises:
+      MalformedAnimePageError
+    """
     p = session.session.get(u'http://myanimelist.net/anime.php?o=9&c[]=a&c[]=d&cv=2&w=1').text
     soup = utilities.get_clean_dom(p)
     latest_entry = soup.find(u"div", {u"class": u"hoverinfo"})
@@ -34,6 +52,19 @@ class Anime(media.Media):
     return Anime(session, latest_id)
 
   def __init__(self, session, anime_id):
+    """Creates a new instance of Anime.
+
+    Args:
+      session (myanimelist.session.Session):  A valid MAL session.
+      anime_id (int):  The desired anime's ID on MAL.
+
+    Returns:
+      Anime.  The desired anime.
+
+    Raises:
+      InvalidAnimeError
+
+    """
     if not isinstance(anime_id, int) or int(anime_id) < 1:
       raise InvalidAnimeError(anime_id)
     super(Anime, self).__init__(session, anime_id)
@@ -46,8 +77,17 @@ class Anime(media.Media):
     self._staff = None
 
   def parse_sidebar(self, anime_page):
-    """
-      Given a BeautifulSoup object containing a MAL anime page's DOM, returns a dict with this anime's attributes found on the sidebar.
+    """Parses the DOM and returns anime attributes in the sidebar.
+
+    Args: 
+      anime_page (bs4.BeautifulSoup): MAL anime page's DOM
+
+    Returns:
+      dict. anime attributes.
+
+    Raises:
+      InvalidAnimeError, MalformedAnimePageError
+
     """
     # if MAL says the series doesn't exist, raise an InvalidAnimeError.
     error_tag = anime_page.find(u'div', {'class': 'badresult'})
@@ -107,7 +147,7 @@ class Anime(media.Media):
         duration_mins += part_volume * 60
       elif part.endswith(u'min'):
         duration_mins += part_volume
-    anime_info[u'duration'] = duration_mins
+    anime_info[u'duration'] = datetime.timedelta(minutes=duration_mins)
 
     rating_tag = info_panel_first.find(text=u'Rating:').parent.parent
     utilities.extract_tags(rating_tag.find_all(u'span', {'class': 'dark_text'}))
@@ -116,8 +156,17 @@ class Anime(media.Media):
     return anime_info    
 
   def parse_characters(self, character_page):
-    """
-      Given a BeautifulSoup object containing a MAL anime's character page DOM, return a dict with this anime's character/staff/va attributes.
+    """Parses the DOM and returns anime character attributes in the sidebar.
+
+    Args: 
+      anime_page (bs4.BeautifulSoup): MAL anime character page's DOM
+
+    Returns:
+      dict. anime character attributes.
+
+    Raises:
+      InvalidAnimeError, MalformedAnimePageError
+      
     """
     anime_info = self.parse_sidebar(character_page)
 
@@ -182,34 +231,62 @@ class Anime(media.Media):
   @property
   @loadable(u'load')
   def episodes(self):
+    """int.  The number of episodes in this anime. If undetermined, is None, otherwise > 0.
+    """
     return self._episodes
 
   @property
   @loadable(u'load')
   def aired(self):
+    """tuple(2).  Up to two datetime.date objects representing the start and end dates of this anime's airing.
+
+      Potential configurations:
+
+        None -- Completely-unknown airing dates.
+        (datetime.date, None) -- Anime start date is known, end date is unknown.
+        (datetime.date, datetime.date) -- Anime start and end dates are known.
+    """
     return self._aired
 
   @property
   @loadable(u'load')
   def producers(self):
+    """list.  List of producers involved in this anime. Contains myanimelist.producer.Producer objects.
+    """
     return self._producers
 
   @property
   @loadable(u'load')
   def duration(self):
+    """datetime.timedelta.  The duration of an episode of this anime.
+    """
     return self._duration
 
   @property
   @loadable(u'load')
   def rating(self):
+    """str.  The MPAA rating given to this anime.
+    """
     return self._rating
 
   @property
   @loadable(u'load_characters')
   def voice_actors(self):
+    """
+      dict. A voice actors dict with::
+
+        keys -- a myanimelist.person.Person object of the voice actor
+        values -- a dict containing info about the role played, e.g. {'role': 'Main', 'character': myanimelist.character.Character(1)}
+    """
     return self._voice_actors
 
   @property
   @loadable(u'load_characters')
   def staff(self):
-    return self._staff  
+    """
+      dict. A staff dict with::
+
+        keys -- a myanimelist.person.Person object of the staff member
+        values -- a list containing the various duties performed by this staff member.
+    """
+    return self._staff

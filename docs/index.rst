@@ -28,9 +28,9 @@ Supported MAL Resources
 Additional Resources
 --------------------
 
-* `python-mal Repository`_
+* `python-mal repository`_
 
-.. _python-mal Repository: https://github.com/shaldengeki/python-mal
+.. _python-mal repository: https://github.com/shaldengeki/python-mal
 
 .. toctree::
    :hidden:

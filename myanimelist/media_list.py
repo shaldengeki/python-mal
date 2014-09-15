@@ -78,8 +78,9 @@ class MediaList(Base):
 
   def parse_entry_media_attributes(self, soup):
     """
-      Given:
+      Args:
         soup: a bs4 element containing a row from the current media list
+
       Return a dict of attributes of the media the row is about.
     """
     try:
@@ -105,6 +106,7 @@ class MediaList(Base):
     """
       Given:
         soup: a bs4 element containing a row from the current media list
+
       Return a tuple:
         (media object, dict of this row's parseable attributes)
     """
@@ -138,6 +140,7 @@ class MediaList(Base):
     """
       Given:
         soup: a bs4 element containing the current media list's stats
+        
       Return a dict of this media list's stats.
     """
     stats = {}

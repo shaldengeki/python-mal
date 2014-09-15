@@ -5,25 +5,43 @@ from base import Base, Error, loadable
 import media
 
 class MalformedMangaPageError(media.MalformedMediaPageError):
+  """
+    Indicates that a manga-related page on MAL has irreparably broken markup in some way.
+  """
   pass
 
 class InvalidMangaError(media.InvalidMediaError):
+  """
+    Indicates that the manga requested does not exist on MAL.
+  """
   pass
 
 class Manga(media.Media):
-  status_terms = [
+  """Primary interface to manga resources on MAL.
+  """
+  _status_terms = [
     u'Unknown',
     u'Publishing',
     u'Finished',
     u'Not yet published'
   ]
-  consuming_verb = "read"
+  _consuming_verb = "read"
 
   @staticmethod
   def newest(session):
-    '''
-      Returns the newest manga on MAL.
-    '''
+    """Fetches the latest manga added to MAL.
+
+    Args:
+      session (myanimelist.session.Session):  A valid MAL session.
+
+
+    Returns:
+      Manga.  the newest manga on MAL.
+
+    Raises:
+      MalformedMangaPageError
+    """
+    # TODO: have Media subsume this responsibility
     p = session.session.get(u'http://myanimelist.net/manga.php?o=9&c[]=a&c[]=d&cv=2&w=1').text
     soup = utilities.get_clean_dom(p)
     latest_entry = soup.find(u"div", {u"class": u"hoverinfo"})
@@ -33,6 +51,19 @@ class Manga(media.Media):
     return Manga(session, latest_id)
 
   def __init__(self, session, manga_id):
+    """Creates a new instance of Manga.
+
+    Args:
+      session (myanimelist.session.Session):  A valid MAL session.
+      manga_id (int):  The desired manga's ID on MAL.
+
+    Returns:
+      Manga.  The desired manga.
+
+    Raises:
+      InvalidMangaError
+
+    """
     if not isinstance(manga_id, int) or int(manga_id) < 1:
       raise InvalidMangaError(manga_id)
     super(Manga, self).__init__(session, manga_id)
@@ -43,8 +74,17 @@ class Manga(media.Media):
     self._serialization = None
 
   def parse_sidebar(self, manga_page):
-    """
-      Given a BeautifulSoup object containing a MAL manga page's DOM, returns a dict with this manga's attributes found on the sidebar.
+    """Parses the DOM and returns manga attributes in the sidebar.
+
+    Args: 
+      manga_page (bs4.BeautifulSoup): MAL manga page's DOM
+
+    Returns:
+      dict. manga attributes.
+
+    Raises:
+      InvalidMangaError, MalformedMangaPageError
+
     """
     # if MAL says the series doesn't exist, raise an InvalidMangaError.
     error_tag = manga_page.find(u'div', {'class': 'badresult'})
@@ -115,35 +155,47 @@ class Manga(media.Media):
 
     return manga_info
 
-  def load(self):
-    """
-      Fetches the MAL manga page and sets the current manga's attributes.
-    """
-    manga_page = self.session.session.get(u'http://myanimelist.net/manga/' + str(self.id)).text
-    self.set(self.parse(utilities.get_clean_dom(manga_page)))
-    return self
-
   @property
   @loadable(u'load')
   def volumes(self):
+    """int.  The number of volumes in this manga.
+    """
     return self._volumes
 
   @property
   @loadable(u'load')
   def chapters(self):
+    """int.  The number of chapters in this manga.
+    """
     return self._chapters
 
   @property
   @loadable(u'load')
   def published(self):
+    """tuple(2).  Up to two datetime.date objects representing the start and end dates of this manga's publishing.
+
+      Potential configurations:
+
+        None -- Completely-unknown publishing dates.
+        (datetime.date, None) -- Manga start date is known, end date is unknown.
+        (datetime.date, datetime.date) -- Manga start and end dates are known.
+    """
     return self._published
 
   @property
   @loadable(u'load')
   def authors(self):
+    """
+      dict. An author dict with::
+
+        keys -- a myanimelist.person.Person object of the author
+        values -- a string describing the duties of this author.
+    """
     return self._authors
 
   @property
   @loadable(u'load')
   def serialization(self):
+    """myanimelist.publication.Publication.  The publication involved in the first serialization of this manga.
+    """
     return self._serialization
