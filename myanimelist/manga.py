@@ -169,15 +169,15 @@ class Manga(media.Media):
   @property
   @loadable(u'load')
   def published(self):
-    """A tuple(2) containing up to two datetime.date objects representing the start and end dates of this manga's publishing.
+    """A tuple(2) containing up to two :class:`datetime.date` objects representing the start and end dates of this manga's publishing.
 
       Potential configurations:
 
         None -- Completely-unknown publishing dates.
 
-        (datetime.date, None) -- Manga start date is known, end date is unknown.
+        (:class:`datetime.date`, None) -- Manga start date is known, end date is unknown.
 
-        (datetime.date, datetime.date) -- Manga start and end dates are known.
+        (:class:`datetime.date`, :class:`datetime.date`) -- Manga start and end dates are known.
     """
     return self._published
 
