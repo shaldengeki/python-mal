@@ -55,7 +55,7 @@ Testing
 Testing requires `nose`. To run the tests that come with python-mal:
 
   1. Navigate to the python-mal directory
-  2. Create a textfile named credentials.txt and put your MAL username and password in it, separated by a comma
+  2. Create a textfile named `credentials.txt` and put your MAL username and password in it, separated by a comma, or set environment variables named `MAL_USERNAME` and `MAL_PASSWORD` with the appropriate values.
   3. Run `nosetests`.
 
 Make sure you don't spam the tests too quickly! One of the tests involves POSTing invalid credentials to MAL, so you're likely to be IP-banned if you do this too much in too short a span of time.
