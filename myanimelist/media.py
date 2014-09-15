@@ -386,49 +386,49 @@ class Media(Base):
   @property
   @loadable(u'load')
   def title(self):
-    """media's title.
+    """Media's title.
     """
     return self._title
 
   @property
   @loadable(u'load')
   def picture(self):
-    """ URL of media's primary pictures.
+    """URL of media's primary pictures.
     """
     return self._picture
 
   @property
   @loadable(u'load')
   def alternative_titles(self):
-    """alternative titles dict, with types of titles, e.g. 'Japanese', 'English', or 'Synonyms' as keys, and lists of said alternative titles as values.
+    """Alternative titles dict, with types of titles, e.g. 'Japanese', 'English', or 'Synonyms' as keys, and lists of said alternative titles as values.
     """
     return self._alternative_titles
 
   @property
   @loadable(u'load')
   def type(self):
-    """ type of this media, e.g. 'TV' or 'Manga' or 'Movie'
+    """Type of this media, e.g. 'TV' or 'Manga' or 'Movie'
     """
     return self._type
 
   @property
   @loadable(u'load')
   def status(self):
-    """ publication status, e.g. 'Finished Airing'
+    """Publication status, e.g. 'Finished Airing'
     """
     return self._status
 
   @property
   @loadable(u'load')
   def genres(self):
-    """ a list of :class:`myanimelist.genre.Genre` objects associated with this media.
+    """A list of :class:`myanimelist.genre.Genre` objects associated with this media.
     """
     return self._genres
 
   @property
   @loadable(u'load')
   def score(self):
-    """a tuple(2) containing an instance of decimal.Decimal storing the aggregate score, weighted or non-weighted, and an int storing the number of ratings
+    """A tuple(2) containing an instance of decimal.Decimal storing the aggregate score, weighted or non-weighted, and an int storing the number of ratings
 
     """
     return self._score
@@ -436,69 +436,69 @@ class Media(Base):
   @property
   @loadable(u'load')
   def rank(self):
-    """ score rank.
+    """Score rank.
     """
     return self._rank
 
   @property
   @loadable(u'load')
   def popularity(self):
-    """ popularity rank.
+    """Popularity rank.
     """
     return self._popularity
 
   @property
   @loadable(u'load')
   def members(self):
-    """ number of members.
+    """Number of members.
     """
     return self._members
 
   @property
   @loadable(u'load')
   def favorites(self):
-    """ number of users who favourited this media.
+    """Number of users who favourited this media.
     """
     return self._favorites
 
   @property
   @loadable(u'load')
   def popular_tags(self):
-    """tags dict with :class:`myanimelist.tag.Tag` objects as keys, and the number of tags as values.
+    """Tags dict with :class:`myanimelist.tag.Tag` objects as keys, and the number of tags as values.
     """
     return self._popular_tags
   
   @property
   @loadable(u'load')
   def synopsis(self):
-    """media synopsis as a string.
+    """Media synopsis.
     """
     return self._synopsis
 
   @property
   @loadable(u'load')
   def related(self):
-    """related media dict, with strings of relation types, e.g. 'Sequel' as keys, and lists containing instances of :class:`.Media` subclasses as values.
+    """Related media dict, with strings of relation types, e.g. 'Sequel' as keys, and lists containing instances of :class:`.Media` subclasses as values.
     """
     return self._related
 
   @property
   @loadable(u'load_characters')
   def characters(self):
-    """character dict, with :class:`myanimelist.character.Character` objects as keys, and a dict with attributes of this role, e.g. 'role': 'Main' as values.
+    """Character dict, with :class:`myanimelist.character.Character` objects as keys, and a dict with attributes of this role, e.g. 'role': 'Main' as values.
     """
     return self._characters
 
   @property
   @loadable(u'load_stats')
   def status_stats(self):
-    """status statistics dict, with strings of statuses, e.g. 'on_hold' as keys, and an int number of users as values.
+    """Status statistics dict, with strings of statuses, e.g. 'on_hold' as keys, and an int number of users as values.
     """
     return self._status_stats
 
   @property
   @loadable(u'load_stats')
   def score_stats(self):
-    """score statistics dict, with int scores from 1-10 as keys, and an int number of users as values.
+    """Score statistics dict, with int scores from 1-10 as keys, and an int number of users as values.
     """
     return self._score_stats
