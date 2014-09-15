@@ -9,18 +9,34 @@ import utilities
 from base import Base, MalformedPageError, InvalidBaseError, loadable
 
 class MalformedUserPageError(MalformedPageError):
+  """Indicates that a user-related page on MAL has irreparably broken markup in some way.
+  """
   pass
 
 class InvalidUserError(InvalidBaseError):
+  """Indicates that the user requested does not exist on MAL.
+  """
   pass
 
 class User(Base):
+  """Primary interface to user resources on MAL.
+  """
   _id_attribute = "username"
 
   @staticmethod
   def find_username_from_user_id(session, user_id):
-    """
-      Given a user_id, return the corresponding MAL user's username.
+    """Look up a MAL username's user ID.
+
+    :type session: :class:`myanimelist.session.Session`
+    :param session: A valid MAL session.
+
+    :type user_id: int
+    :param user_id: The user ID for which we want to look up a username.
+
+    :raises: :class:`.InvalidUserError`
+
+    :rtype: str
+    :return: The given user's username.
     """
     comments_page = session.session.get(u'http://myanimelist.net/comments.php?' + urllib.urlencode({'id': int(user_id)})).text
     comments_page = bs4.BeautifulSoup(comments_page)
@@ -30,6 +46,16 @@ class User(Base):
     return username_elt.text.replace("'s Comments", "")
 
   def __init__(self, session, username):
+    """Creates a new instance of User.
+
+    :type session: :class:`myanimelist.session.Session`
+    :param session: A valid MAL session
+    :type username: str
+    :param username: The desired user's username on MAL
+
+    :raises: :class:`.InvalidUserError`
+
+    """
     super(User, self).__init__(session)
     self.username = username
     if not isinstance(self.username, unicode) or len(self.username) < 1:
@@ -60,6 +86,16 @@ class User(Base):
     self._friends = None
 
   def parse_sidebar(self, user_page):
+    """Parses the DOM and returns user attributes in the sidebar.
+
+    :type user_page: :class:`bs4.BeautifulSoup`
+    :param user_page: MAL user page's DOM
+
+    :rtype: dict
+    :return: User attributes
+
+    :raises: :class:`.InvalidUserError`, :class:`.MalformedUserPageError`
+    """
     user_info = {}
     # if MAL says the series doesn't exist, raise an InvalidUserError.
     error_tag = user_page.find(u'div', {u'class': u'badresult'})
@@ -115,10 +151,10 @@ class User(Base):
             # of the form /character/467/Ghost_in_the_Shell:_Stand_Alone_Complex
             character = self.session.character(int(link_parts[2])).set({u'title': character_link.text})
 
-            anime_link = cols[1].find(u'div').find(u'a')
-            link_parts = anime_link.get(u'href').split(u'/')
-            # of the form /anime/467
-            anime = self.session.anime(int(link_parts[2])).set({u'title': anime_link.text})
+            media_link = cols[1].find(u'div').find(u'a')
+            link_parts = media_link.get(u'href').split(u'/')
+            # of the form /anime|manga/467
+            anime = getattr(self.session, link_parts[1])(int(link_parts[2])).set({u'title': media_link.text})
 
             user_info[u'favorite_characters'][character] = anime
       favorite_people_header = infobar_headers[3]
@@ -135,6 +171,15 @@ class User(Base):
     return user_info
 
   def parse(self, user_page):
+    """Parses the DOM and returns user attributes in the main-content area.
+
+    :type user_page: :class:`bs4.BeautifulSoup`
+    :param user_page: MAL user page's DOM
+
+    :rtype: dict
+    :return: User attributes.
+
+    """
     user_info = self.parse_sidebar(user_page)
 
     section_headings = user_page.find_all(u'div', {u'class': u'normal_header'})
@@ -254,6 +299,15 @@ class User(Base):
     return user_info
 
   def parse_reviews(self, reviews_page):
+    """Parses the DOM and returns user reviews attributes.
+
+    :type reviews_page: :class:`bs4.BeautifulSoup`
+    :param reviews_page: MAL user reviews page's DOM
+
+    :rtype: dict
+    :return: User reviews attributes.
+
+    """
     user_info = self.parse_sidebar(reviews_page)
 
     second_col = reviews_page.find(u'div', {u'id': u'content'}).find(u'table').find(u'tr').find_all(u'td', recursive=False)[1]
@@ -271,10 +325,7 @@ class User(Base):
         media_link = meta_rows[0].find(u'a')
         link_parts = media_link.get(u'href').split(u'/')
         # of the form /(anime|manga)/9760/Hoshi_wo_Ou_Kodomo
-        if link_parts[1] == u'anime':
-          media = self.session.anime(int(link_parts[2])).set({u'title': media_link.text})
-        else:
-          media = self.session.manga(int(link_parts[2])).set({u'title': media_link.text})
+        media = getattr(self.session, link_parts[1])(int(link_parts[2])).set({u'title': media_link.text})
 
         helpfuls = meta_rows[1].find(u'span', recursive=False)
         helpful_match = re.match(r'(?P<people_helped>[0-9]+) of (?P<people_total>[0-9]+)', helpfuls.text).groupdict()
@@ -297,6 +348,15 @@ class User(Base):
     return user_info
 
   def parse_recommendations(self, recommendations_page):
+    """Parses the DOM and returns user recommendations attributes.
+
+    :type recommendations_page: :class:`bs4.BeautifulSoup`
+    :param recommendations_page: MAL user recommendations page's DOM
+
+    :rtype: dict
+    :return: User recommendations attributes.
+
+    """
     user_info = self.parse_sidebar(recommendations_page)
 
     second_col = recommendations_page.find(u'div', {u'id': u'content'}).find(u'table').find(u'tr').find_all(u'td', recursive=False)[1]
@@ -306,15 +366,15 @@ class User(Base):
       for row in recommendations[1:]:
         anime_table = row.find(u'table')
         animes = anime_table.find_all(u'td')
-        liked_anime_link = animes[0].find(u'a', recursive=False)
-        link_parts = liked_anime_link.get(u'href').split(u'/')
-        # of the form /anime/64/Rozen_Maiden
-        liked_anime = self.session.anime(int(link_parts[2])).set({u'title': liked_anime_link.text})
+        liked_media_link = animes[0].find(u'a', recursive=False)
+        link_parts = liked_media_link.get(u'href').split(u'/')
+        # of the form /anime|manga/64/Rozen_Maiden
+        liked_media = getattr(self.session, link_parts[1])(int(link_parts[2])).set({u'title': liked_media_link.text})
 
-        recommended_anime_link = animes[1].find(u'a', recursive=False)
-        link_parts = recommended_anime_link.get(u'href').split(u'/')
-        # of the form /anime/64/Rozen_Maiden
-        recommended_anime = self.session.anime(int(link_parts[2])).set({u'title': recommended_anime_link.text})
+        recommended_media_link = animes[1].find(u'a', recursive=False)
+        link_parts = recommended_media_link.get(u'href').split(u'/')
+        # of the form /anime|manga/64/Rozen_Maiden
+        recommended_media = getattr(self.session, link_parts[1])(int(link_parts[2])).set({u'title': recommended_media_link.text})
 
         recommendation_text = row.find(u'p').text
 
@@ -322,10 +382,19 @@ class User(Base):
         utilities.extract_tags(recommendation_menu)
         recommendation_date = utilities.parse_profile_date(recommendation_menu.text.split(u' - ')[1])
 
-        user_info[u'recommendations'][liked_anime] = {u'anime': recommended_anime, 'text': recommendation_text, 'date': recommendation_date}
+        user_info[u'recommendations'][liked_media] = {link_parts[1]: recommended_media, 'text': recommendation_text, 'date': recommendation_date}
     return user_info
 
   def parse_clubs(self, clubs_page):
+    """Parses the DOM and returns user clubs attributes.
+
+    :type clubs_page: :class:`bs4.BeautifulSoup`
+    :param clubs_page: MAL user clubs page's DOM
+
+    :rtype: dict
+    :return: User clubs attributes.
+
+    """
     user_info = self.parse_sidebar(clubs_page)
 
     second_col = clubs_page.find(u'div', {u'id': u'content'}).find(u'table').find(u'tr').find_all(u'td', recursive=False)[1]
@@ -342,6 +411,15 @@ class User(Base):
     return user_info
 
   def parse_friends(self, friends_page):
+    """Parses the DOM and returns user friends attributes.
+
+    :type friends_page: :class:`bs4.BeautifulSoup`
+    :param friends_page: MAL user friends page's DOM
+
+    :rtype: dict
+    :return: User friends attributes.
+
+    """
     user_info = self.parse_sidebar(friends_page)
 
     second_col = friends_page.find(u'div', {u'id': u'content'}).find(u'table').find(u'tr').find_all(u'td', recursive=False)[1]
@@ -366,16 +444,22 @@ class User(Base):
     return user_info
 
   def load(self):
-    """
-      Fetches the MAL user profile and sets the current user's attributes.
+    """Fetches the MAL user page and sets the current user's attributes.
+
+    :rtype: :class:`.User`
+    :return: Current user object.
+
     """
     user_profile = self.session.session.get(u'http://myanimelist.net/profile/' + utilities.urlencode(self.username)).text
     self.set(self.parse(utilities.get_clean_dom(user_profile)))
     return self
 
   def load_reviews(self):
-    """
-      Fetches the MAL user's reviews and sets the current user's attributes.
+    """Fetches the MAL user reviews page and sets the current user's reviews attributes.
+
+    :rtype: :class:`.User`
+    :return: Current user object.
+
     """
     page = 0
     # collect all reviews over all pages.
@@ -398,24 +482,33 @@ class User(Base):
     return self
 
   def load_recommendations(self):
-    """
-      Fetches the MAL user's recommendations and sets the current user's attributes.
+    """Fetches the MAL user recommendations page and sets the current user's recommendations attributes.
+
+    :rtype: :class:`.User`
+    :return: Current user object.
+
     """
     user_recommendations = self.session.session.get(u'http://myanimelist.net/profile/' + utilities.urlencode(self.username) + u'/recommendations').text
     self.set(self.parse_recommendations(utilities.get_clean_dom(user_recommendations)))
     return self
 
   def load_clubs(self):
-    """
-      Fetches the MAL user's clubs and sets the current user's attributes.
+    """Fetches the MAL user clubs page and sets the current user's clubs attributes.
+
+    :rtype: :class:`.User`
+    :return: Current user object.
+
     """
     user_clubs = self.session.session.get(u'http://myanimelist.net/profile/' + utilities.urlencode(self.username) + u'/clubs').text
     self.set(self.parse_clubs(utilities.get_clean_dom(user_clubs)))
     return self
 
   def load_friends(self):
-    """
-      Fetches the MAL user's friends and sets the current user's attributes.
+    """Fetches the MAL user friends page and sets the current user's friends attributes.
+
+    :rtype: :class:`.User`
+    :return: Current user object.
+
     """
     user_friends = self.session.session.get(u'http://myanimelist.net/profile/' + utilities.urlencode(self.username) + u'/friends').text
     self.set(self.parse_friends(utilities.get_clean_dom(user_friends)))
@@ -424,131 +517,208 @@ class User(Base):
   @property
   @loadable(u'load')
   def id(self):
+    """User ID.
+    """
     return self._id
 
   @property
   @loadable(u'load')
   def picture(self):
+    """User's picture.
+    """
     return self._picture
 
   @property
   @loadable(u'load')
   def favorite_anime(self):
+    """A list of :class:`myanimelist.anime.Anime` objects containing this user's favorite anime.
+    """
     return self._favorite_anime
 
   @property
   @loadable(u'load')
   def favorite_manga(self):
+    """A list of :class:`myanimelist.manga.Manga` objects containing this user's favorite manga.
+    """
     return self._favorite_manga
 
   @property
   @loadable(u'load')
   def favorite_characters(self):
+    """A dict with :class:`myanimelist.character.Character` objects as keys and :class:`myanimelist.media.Media` as values.
+    """
     return self._favorite_characters
 
   @property
   @loadable(u'load')
   def favorite_people(self):
+    """A list of :class:`myanimelist.person.Person` objects containing this user's favorite people.
+    """
     return self._favorite_people
 
   @property
   @loadable(u'load')
   def last_online(self):
+    """A :class:`datetime.datetime` object marking when this user was active on MAL.
+    """    
     return self._last_online
 
   @property
   @loadable(u'load')
   def gender(self):
+    """This user's gender.
+    """
     return self._gender
 
   @property
   @loadable(u'load')
   def birthday(self):
+    """A :class:`datetime.datetime` object marking this user's birthday.
+    """    
     return self._birthday
 
   @property
   @loadable(u'load')
   def location(self):
+    """This user's location.
+    """
     return self._location
 
   @property
   @loadable(u'load')
   def website(self):
+    """This user's website.
+    """
     return self._website
 
   @property
   @loadable(u'load')
   def join_date(self):
+    """A :class:`datetime.datetime` object marking when this user joined MAL.
+    """    
     return self._join_date
 
   @property
   @loadable(u'load')
   def access_rank(self):
+    """This user's access rank on MAL.
+    """
     return self._access_rank
 
   @property
   @loadable(u'load')
   def anime_list_views(self):
+    """The number of times this user's anime list has been viewed.
+    """
     return self._anime_list_views
 
   @property
   @loadable(u'load')
   def manga_list_views(self):
+    """The number of times this user's manga list has been viewed.
+    """
     return self._manga_list_views
 
   @property
   @loadable(u'load')
   def num_comments(self):
+    """The number of comments this user has made.
+    """
     return self._num_comments
 
   @property
   @loadable(u'load')
   def num_forum_posts(self):
+    """The number of forum posts this user has made.
+    """
     return self._num_forum_posts
 
   @property
   @loadable(u'load')
   def last_list_updates(self):
+    """A dict of this user's last list updates, with keys as :class:`myanimelist.media.Media` objects, and values as dicts of attributes, e.g. {'status': str, 'episodes': int, 'total_episodes': int, 'time': :class:`datetime.datetime`}
+    """
     return self._last_list_updates
 
   @property
   @loadable(u'load')
   def about(self):
+    """This user's self-bio.
+    """
     return self._about
 
   @property
   @loadable(u'load')
   def anime_stats(self):
+    """A dict of this user's anime stats, with keys as strings, and values as numerics.
+    """
     return self._anime_stats
 
   @property
   @loadable(u'load')
   def manga_stats(self):
+    """A dict of this user's manga stats, with keys as strings, and values as numerics.
+    """
     return self._manga_stats
 
   @property
   @loadable(u'load_reviews')
   def reviews(self):
+    """A dict of this user's reviews, with keys as :class:`myanimelist.media.Media` objects, and values as dicts of attributes, e.g. 
+    {
+      'people_helped': int, 
+      'people_total': int, 
+      'media_consumed': int, 
+      'media_total': int, 
+      'rating': int, 
+      'text': str, 
+      'date': :class:`datetime.datetime`
+    }
+    """
     return self._reviews
 
   @property
   @loadable(u'load_recommendations')
   def recommendations(self):
+    """A dict of this user's recommendations, with keys as :class:`myanimelist.media.Media` objects, and values as dicts of attributes, e.g. 
+    {
+      'anime|media': :class:`myanimelist.media.Media`, 
+      'text': str, 
+      'date': :class:`datetime.datetime`
+    }
+    """
     return self._recommendations
 
   @property
   @loadable(u'load_clubs')
   def clubs(self):
+    """A list of :class:`myanimelist.club.Club` objects containing this user's club memberships.
+    """
     return self._clubs
 
   @property
   @loadable(u'load_friends')
   def friends(self):
+    """A dict of this user's friends, with keys as :class:`myanimelist.user.User` objects, and values as dicts of attributes, e.g. 
+    {
+      'last_active': :class:`datetime.datetime`, 
+      'since': :class:`datetime.datetime`
+    }
+    """
     return self._friends
 
   def anime_list(self):
+    """This user's anime list.
+
+    :rtype: :class:`myanimelist.anime_list.AnimeList`
+    :return: The desired anime list.
+    """
     return self.session.anime_list(self.username)
 
   def manga_list(self):
+    """This user's manga list.
+
+    :rtype: :class:`myanimelist.manga_list.MangaList`
+    :return: The desired manga list.
+    """
     return self.session.manga_list(self.username)
-    
