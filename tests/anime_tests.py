@@ -12,30 +12,35 @@ class testAnimeClass(object):
     self.session = myanimelist.session.Session()
     self.bebop = self.session.anime(1)
     self.sunrise = self.session.producer(14)
+    self.action = self.session.genre(1)
     self.hex = self.session.character(94717)
     self.hex_va = self.session.person(5766)
     self.bebop_side_story = self.session.anime(5)
 
     self.spicy_wolf = self.session.anime(2966)
+    self.kadokawa = self.session.producer(352)
+    self.romance = self.session.genre(22)
     self.holo = self.session.character(7373)
     self.holo_va = self.session.person(70)
     self.spicy_wolf_sequel = self.session.anime(6007)
-    self.kadokawa = self.session.producer(352)
 
     self.space_dandy = self.session.anime(20057)
+    self.funi = self.session.producer(102)
+    self.scifi = self.session.genre(24)
     self.toaster = self.session.character(110427)
     self.toaster_va = self.session.person(611)
-    self.funi = self.session.producer(102)
 
     self.totoro = self.session.anime(523)
+    self.gkids = self.session.producer(783)
+    self.supernatural = self.session.genre(37)
     self.satsuki = self.session.character(267)
     self.satsuki_va = self.session.person(1104)
-    self.gkids = self.session.producer(783)
 
     self.prisma = self.session.anime(18851)
+    self.silver_link = self.session.producer(300)
+    self.fantasy = self.session.genre(10)
     self.ilya = self.session.character(503)
     self.ilya_va = self.session.person(117)
-    self.silver_link = self.session.producer(300)
 
     self.invalid_anime = self.session.anime(457384754)
     self.latest_anime = myanimelist.anime.Anime.newest(self.session)
@@ -123,6 +128,18 @@ class testAnimeClass(object):
     assert self.gkids in self.totoro.producers
     assert isinstance(self.prisma.producers, list) and len(self.prisma.producers) > 0
     assert self.silver_link in self.prisma.producers
+
+  def testGenres(self):
+    assert isinstance(self.bebop.genres, list) and len(self.bebop.genres) > 0
+    assert self.action in self.bebop.genres
+    assert isinstance(self.spicy_wolf.genres, list) and len(self.spicy_wolf.genres) > 0
+    assert self.romance in self.spicy_wolf.genres
+    assert isinstance(self.space_dandy.genres, list) and len(self.space_dandy.genres) > 0
+    assert self.scifi in self.space_dandy.genres
+    assert isinstance(self.totoro.genres, list) and len(self.totoro.genres) > 0
+    assert self.supernatural in self.totoro.genres
+    assert isinstance(self.prisma.genres, list) and len(self.prisma.genres) > 0
+    assert self.fantasy in self.prisma.genres
 
   def testDuration(self):
     assert self.spicy_wolf.duration.total_seconds() == 1440
