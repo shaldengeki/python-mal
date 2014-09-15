@@ -18,7 +18,19 @@ class InvalidCharacterError(InvalidBaseError):
   pass
 
 class Character(Base):
+  """Primary interface to character resources on MAL.
+  """
   def __init__(self, session, character_id):
+    """Creates a new instance of Character.
+
+    :type session: :class:`myanimelist.session.Session`
+    :param session: A valid MAL session
+    :type character_id: int
+    :param character_id: The desired character's ID on MAL
+
+    :raises: :class:`.InvalidCharacterError`
+
+    """
     super(Character, self).__init__(session)
     self.id = character_id
     if not isinstance(self.id, int) or int(self.id) < 1:
@@ -37,8 +49,15 @@ class Character(Base):
     self._clubs = None
 
   def parse_sidebar(self, character_page):
-    """
-      Given a MAL character page's DOM, returns a dict with this character's attributes found on the sidebar.
+    """Parses the DOM and returns character attributes in the sidebar.
+
+    :type character_page: :class:`bs4.BeautifulSoup`
+    :param character_page: MAL character page's DOM
+
+    :rtype: dict
+    :return: Character attributes
+
+    :raises: :class:`.InvalidCharacterError`, :class:`.MalformedCharacterPageError`
     """
     character_info = {}
     error_tag = character_page.find(u'div', {'class': 'badresult'})
@@ -92,8 +111,14 @@ class Character(Base):
     return character_info
 
   def parse(self, character_page):
-    """
-      Given a MAL character page's DOM, returns a dict with this character's attributes.
+    """Parses the DOM and returns character attributes in the main-content area.
+
+    :type character_page: :class:`bs4.BeautifulSoup`
+    :param character_page: MAL character page's DOM
+
+    :rtype: dict
+    :return: Character attributes.
+
     """
     character_info = self.parse_sidebar(character_page)
 
@@ -147,6 +172,15 @@ class Character(Base):
     self._clubs = None
 
   def parse_favorites(self, favorites_page):
+    """Parses the DOM and returns character favorites attributes.
+
+    :type character_page: :class:`bs4.BeautifulSoup`
+    :param character_page: MAL character favorites page's DOM
+
+    :rtype: dict
+    :return: Character favorites attributes.
+
+    """
     character_info = self.parse_sidebar(favorites_page)
     second_col = favorites_page.find(u'div', {'id': 'content'}).find(u'table').find(u'tr').find_all(u'td', recursive=False)[1]
 
@@ -159,6 +193,15 @@ class Character(Base):
     return character_info
 
   def parse_pictures(self, picture_page):
+    """Parses the DOM and returns character pictures attributes.
+
+    :type character_page: :class:`bs4.BeautifulSoup`
+    :param character_page: MAL character pictures page's DOM
+
+    :rtype: dict
+    :return: character pictures attributes.
+
+    """
     character_info = self.parse_sidebar(picture_page)
     second_col = picture_page.find(u'div', {'id': 'content'}).find(u'table').find(u'tr').find_all(u'td', recursive=False)[1]
 
@@ -169,6 +212,15 @@ class Character(Base):
     return character_info
 
   def parse_clubs(self, clubs_page):
+    """Parses the DOM and returns character clubs attributes.
+
+    :type character_page: :class:`bs4.BeautifulSoup`
+    :param character_page: MAL character clubs page's DOM
+
+    :rtype: dict
+    :return: character clubs attributes.
+
+    """
     character_info = self.parse_sidebar(clubs_page)
     second_col = clubs_page.find(u'div', {'id': 'content'}).find(u'table').find(u'tr').find_all(u'td', recursive=False)[1]
 
@@ -186,32 +238,44 @@ class Character(Base):
     return character_info
 
   def load(self):
-    """
-      Fetches the MAL character page and sets the current character's attributes.
+    """Fetches the MAL character page and sets the current character's attributes.
+
+    :rtype: :class:`.Character`
+    :return: Current character object.
+
     """
     character = self.session.session.get(u'http://myanimelist.net/character/' + str(self.id)).text
     self.set(self.parse(utilities.get_clean_dom(character)))
     return self
 
   def load_favorites(self):
-    """
-      Fetches the MAL character favorites page and sets the current character's attributes.
+    """Fetches the MAL character favorites page and sets the current character's favorites attributes.
+
+    :rtype: :class:`.Character`
+    :return: Current character object.
+
     """
     character = self.session.session.get(u'http://myanimelist.net/character/' + str(self.id) + u'/' + utilities.urlencode(self.name) + u'/favorites').text
     self.set(self.parse_favorites(utilities.get_clean_dom(character)))
     return self
 
   def load_pictures(self):
-    """
-      Fetches the MAL character pictures page and sets the current character's attributes.
+    """Fetches the MAL character pictures page and sets the current character's pictures attributes.
+
+    :rtype: :class:`.Character`
+    :return: Current character object.
+
     """
     character = self.session.session.get(u'http://myanimelist.net/character/' + str(self.id) + u'/' + utilities.urlencode(self.name) + u'/pictures').text
     self.set(self.parse_pictures(utilities.get_clean_dom(character)))
     return self
 
   def load_clubs(self):
-    """
-      Fetches the MAL character clubs page and sets the current character's attributes.
+    """Fetches the MAL character clubs page and sets the current character's clubs attributes.
+
+    :rtype: :class:`.Character`
+    :return: Current character object.
+
     """
     character = self.session.session.get(u'http://myanimelist.net/character/' + str(self.id) + u'/' + utilities.urlencode(self.name) + u'/clubs').text
     self.set(self.parse_clubs(utilities.get_clean_dom(character)))
@@ -220,60 +284,83 @@ class Character(Base):
   @property
   @loadable(u'load')
   def name(self):
+    """Character name.
+    """
     return self._name
 
   @property
   @loadable(u'load')
   def full_name(self):
+    """Character's full name.
+    """
     return self._full_name
 
   @property
   @loadable(u'load')
   def name_jpn(self):
+    """Character's Japanese name.
+    """
     return self._name_jpn
 
   @property
   @loadable(u'load')
   def description(self):
+    """Character's description.
+    """
     return self._description
 
   @property
   @loadable(u'load')
   def voice_actors(self):
+    """Voice actor dict for this character, with :class:`myanimelist.person.Person` objects as keys and the language as values.
+    """
     return self._voice_actors
 
   @property
   @loadable(u'load')
   def animeography(self):
+    """Anime appearance dict for this character, with :class:`myanimelist.anime.Anime` objects as keys and the type of role as values, e.g. 'Main'
+    """
     return self._animeography
 
   @property
   @loadable(u'load')
   def mangaography(self):
+    """Manga appearance dict for this character, with :class:`myanimelist.manga.Manga` objects as keys and the type of role as values, e.g. 'Main'
+    """
     return self._mangaography
 
   @property
   @loadable(u'load')
   def num_favorites(self):
+    """Number of users who have favourited this character.
+    """
     return self._num_favorites
 
   @property
   @loadable(u'load_favorites')
   def favorites(self):
+    """List of users who have favourited this character.
+    """
     return self._favorites
 
   @property
   @loadable(u'load')
   def picture(self):
+    """URL of primary picture for this character.
+    """
     return self._picture
 
   @property
   @loadable(u'load_pictures')
   def pictures(self):
+    """List of picture URLs for this character.
+    """
     return self._pictures
 
   @property
   @loadable(u'load_clubs')
   def clubs(self):
+    """List of clubs relevant to this character.
+    """
     return self._clubs
-
