@@ -167,6 +167,7 @@ class testUserClass(object):
 
   def testReviews(self):
     assert isinstance(self.shal.reviews, dict) and len(self.shal.reviews) == 0
+
     assert isinstance(self.smooched.reviews, dict) and len(self.smooched.reviews) >= 11
     assert self.sao in self.smooched.reviews
     assert isinstance(self.smooched.reviews[self.sao][u'date'], datetime.date) and self.smooched.reviews[self.sao][u'date'] == datetime.date(year=2012, month=7, day=24)
@@ -174,6 +175,7 @@ class testUserClass(object):
     assert self.smooched.reviews[self.sao][u'media_consumed'] == 13 and self.smooched.reviews[self.sao][u'media_total'] == 25
     assert self.smooched.reviews[self.sao][u'rating'] == 7
     assert isinstance(self.smooched.reviews[self.sao][u'text'], unicode) and len(self.smooched.reviews[self.sao][u'text']) > 0
+
     assert isinstance(self.threger.reviews, dict) and len(self.threger.reviews) == 0
 
   def testRecommendations(self):

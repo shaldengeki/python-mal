@@ -84,9 +84,8 @@ class User(Base):
     self._clubs = None
     self._friends = None
 
-  def parse_sidebar(self, html):
+  def parse_sidebar(self, user_page):
     user_info = {}
-    user_page = bs4.BeautifulSoup(html)
     # if MAL says the series doesn't exist, raise an InvalidUserError.
     error_tag = user_page.find(u'div', {u'class': u'badresult'})
     if error_tag:
@@ -95,7 +94,7 @@ class User(Base):
     username_tag = user_page.find(u'div', {u'id': u'contentWrapper'}).find(u'h1')
     if not username_tag.find(u'div'):
       # otherwise, raise a MalformedUserPageError.
-      raise MalformedUserPageError(self.username, html, message=u"Could not find title div")
+      raise MalformedUserPageError(self.username, user_page, message=u"Could not find title div")
     info_panel_first = user_page.find(u'div', {u'id': u'content'}).find(u'table').find(u'td')
 
     picture_tag = info_panel_first.find(u'img')
@@ -160,9 +159,8 @@ class User(Base):
             user_info[u'favorite_people'].append(self.session.person(int(link_parts[2])).set({u'title': person_link.text}))
     return user_info
 
-  def parse(self, html):
-    user_info = self.parse_sidebar(html)
-    user_page = bs4.BeautifulSoup(html)
+  def parse(self, user_page):
+    user_info = self.parse_sidebar(user_page)
 
     section_headings = user_page.find_all(u'div', {u'class': u'normal_header'})
 
@@ -280,17 +278,19 @@ class User(Base):
       user_info[u'about'] = about_header.findNext(u'div').text.strip()
     return user_info
 
-  def parse_reviews(self, html):
-    user_info = self.parse_sidebar(html)
-    reviews_page = bs4.BeautifulSoup(html)
+  def parse_reviews(self, reviews_page):
+    user_info = self.parse_sidebar(reviews_page)
 
     second_col = reviews_page.find(u'div', {u'id': u'content'}).find(u'table').find(u'tr').find_all(u'td', recursive=False)[1]
     user_info[u'reviews'] = {}
-    reviews = second_col.find_all(u'div', {u'class': u'borderDark'})
+    reviews = second_col.find_all(u'div', {u'class': u'borderDark'}, recursive=False)
     if reviews:
       for row in reviews:
         review_info = {}
-        (meta_elt, review_elt, _) = row.find_all(u'div', recursive=False)
+        try:
+          (meta_elt, review_elt) = row.find_all(u'div', recursive=False)[0:2]
+        except ValueError:
+          raise
         meta_rows = meta_elt.find_all(u'div', recursive=False)
         review_info[u'date'] = utilities.parse_profile_date(meta_rows[0].find(u'div').text)
         media_link = meta_rows[0].find(u'a')
@@ -321,9 +321,9 @@ class User(Base):
         user_info[u'reviews'][media] = review_info
     return user_info
 
-  def parse_recommendations(self, html):
-    user_info = self.parse_sidebar(html)
-    recommendations_page = bs4.BeautifulSoup(html)
+  def parse_recommendations(self, recommendations_page):
+    user_info = self.parse_sidebar(recommendations_page)
+
     second_col = recommendations_page.find(u'div', {u'id': u'content'}).find(u'table').find(u'tr').find_all(u'td', recursive=False)[1]
     recommendations = second_col.find_all(u"div", {u"class": u"spaceit borderClass"})
     if recommendations:
@@ -350,9 +350,9 @@ class User(Base):
         user_info[u'recommendations'][liked_anime] = {u'anime': recommended_anime, 'text': recommendation_text, 'date': recommendation_date}
     return user_info
 
-  def parse_clubs(self, html):
-    user_info = self.parse_sidebar(html)
-    clubs_page = bs4.BeautifulSoup(html)
+  def parse_clubs(self, clubs_page):
+    user_info = self.parse_sidebar(clubs_page)
+
     second_col = clubs_page.find(u'div', {u'id': u'content'}).find(u'table').find(u'tr').find_all(u'td', recursive=False)[1]
     user_info[u'clubs'] = []
 
@@ -366,9 +366,9 @@ class User(Base):
         user_info[u'clubs'].append(self.session.club(int(link_parts[1])).set({u'name': club_link.text}))
     return user_info
 
-  def parse_friends(self, html):
-    user_info = self.parse_sidebar(html)
-    friends_page = bs4.BeautifulSoup(html)
+  def parse_friends(self, friends_page):
+    user_info = self.parse_sidebar(friends_page)
+
     second_col = friends_page.find(u'div', {u'id': u'content'}).find(u'table').find(u'tr').find_all(u'td', recursive=False)[1]
     user_info[u'friends'] = {}
 
@@ -395,7 +395,7 @@ class User(Base):
       Fetches the MAL user profile and sets the current user's attributes.
     """
     user_profile = self.session.session.get(u'http://myanimelist.net/profile/' + utilities.urlencode(self.username)).text
-    self.set(self.parse(user_profile))
+    self.set(self.parse(utilities.get_clean_dom(user_profile)))
     return self
 
   def load_reviews(self):
@@ -407,7 +407,7 @@ class User(Base):
     review_collection = []
     while True:
       user_reviews = self.session.session.get(u'http://myanimelist.net/profile/' + utilities.urlencode(self.username) + u'/reviews&' + urllib.urlencode({u'p': page})).text
-      parse_result = self.parse_reviews(user_reviews)
+      parse_result = self.parse_reviews(utilities.get_clean_dom(user_reviews))
       if page == 0:
         # only set attributes once the first time around.
         self.set(parse_result)
@@ -427,7 +427,7 @@ class User(Base):
       Fetches the MAL user's recommendations and sets the current user's attributes.
     """
     user_recommendations = self.session.session.get(u'http://myanimelist.net/profile/' + utilities.urlencode(self.username) + u'/recommendations').text
-    self.set(self.parse_recommendations(user_recommendations))
+    self.set(self.parse_recommendations(utilities.get_clean_dom(user_recommendations)))
     return self
 
   def load_clubs(self):
@@ -435,7 +435,7 @@ class User(Base):
       Fetches the MAL user's clubs and sets the current user's attributes.
     """
     user_clubs = self.session.session.get(u'http://myanimelist.net/profile/' + utilities.urlencode(self.username) + u'/clubs').text
-    self.set(self.parse_clubs(user_clubs))
+    self.set(self.parse_clubs(utilities.get_clean_dom(user_clubs)))
     return self
 
   def load_friends(self):
@@ -443,7 +443,7 @@ class User(Base):
       Fetches the MAL user's friends and sets the current user's attributes.
     """
     user_friends = self.session.session.get(u'http://myanimelist.net/profile/' + utilities.urlencode(self.username) + u'/friends').text
-    self.set(self.parse_friends(user_friends))
+    self.set(self.parse_friends(utilities.get_clean_dom(user_friends)))
     return self
 
   @property

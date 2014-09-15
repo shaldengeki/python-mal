@@ -167,7 +167,7 @@ class MediaList(Base):
 
   def parse(self, xml):
     list_info = {}
-    list_page = bs4.BeautifulSoup(xml)
+    list_page = bs4.BeautifulSoup(xml, "xml")
 
     primary_elt = list_page.find('myanimelist')
     if not primary_elt:
@@ -188,8 +188,8 @@ class MediaList(Base):
       (media, entry) = self.parse_entry(row)
       list_info[u'list'][media] = entry
     return list_info
-  def load(self):
 
+  def load(self):
     media_list = self.session.session.get(u'http://myanimelist.net/malappinfo.php?' + urllib.urlencode({'u': self.username, 'status': 'all', 'type': self.type})).text
     self.set(self.parse(media_list))
     return self

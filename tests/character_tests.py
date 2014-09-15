@@ -71,7 +71,6 @@ class testCharacterClass(object):
     assert isinstance(self.maria.animeography, dict) and len(self.maria.animeography) > 0 and self.session.anime(26441) in self.maria.animeography
 
   def testMangaography(self):
-    print self.spike.mangaography
     assert isinstance(self.spike.mangaography, dict) and len(self.spike.mangaography) > 0 and self.session.manga(173) in self.spike.mangaography
     assert isinstance(self.ed.mangaography, dict) and len(self.ed.mangaography) > 0 and self.session.manga(4658) in self.ed.mangaography
     assert isinstance(self.maria.mangaography, dict) and len(self.maria.mangaography) > 0 and self.session.manga(12336) in self.maria.mangaography

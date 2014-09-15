@@ -34,7 +34,7 @@ def get_clean_dom(html):
   """
     Given raw HTML from a MAL page, return a BeautifulSoup object with cleaned HTML.
   """
-  return bs4.BeautifulSoup(fix_bad_html(html))
+  return bs4.BeautifulSoup(fix_bad_html(html), "html.parser")
 
 def urlencode(url):
   """
