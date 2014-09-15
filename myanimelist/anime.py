@@ -237,8 +237,11 @@ class Anime(media.Media):
       Potential configurations:
 
         None -- Completely-unknown airing dates.
+
         (:class:`datetime.date`, None) -- Anime start date is known, end date is unknown.
+
         (:class:`datetime.date`, :class:`datetime.date`) -- Anime start and end dates are known.
+
     """
     return self._aired
 
@@ -266,13 +269,13 @@ class Anime(media.Media):
   @property
   @loadable(u'load_characters')
   def voice_actors(self):
-    """A voice actors dict with myanimelist.person.Person objects of the voice actors as keys, and dicts containing info about the roles played, e.g. {'role': 'Main', 'character': myanimelist.character.Character(1)} as values.
+    """A voice actors dict with :class:`myanimelist.person.Person` objects of the voice actors as keys, and dicts containing info about the roles played, e.g. {'role': 'Main', 'character': myanimelist.character.Character(1)} as values.
     """
     return self._voice_actors
 
   @property
   @loadable(u'load_characters')
   def staff(self):
-    """A staff dict with myanimelist.person.Person objects of the staff members as keys, and lists containing the various duties performed by staff members as values.
+    """A staff dict with :class:`myanimelist.person.Person` objects of the staff members as keys, and lists containing the various duties performed by staff members as values.
     """
     return self._staff
