@@ -219,7 +219,7 @@ class MediaList(Base, collections.Mapping):
         elif key == u'days_spent_watching':
           try:
             stats[u'days_spent'] = decimal.Decimal(row.text)
-          except ValueError:
+          except decimal.InvalidOperation:
             stats[key] = decimal.Decimal(0)
       except:
         if not self.session.suppress_parse_exceptions:
