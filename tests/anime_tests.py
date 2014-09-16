@@ -16,6 +16,7 @@ class testAnimeClass(object):
     self.hex = self.session.character(94717)
     self.hex_va = self.session.person(5766)
     self.bebop_side_story = self.session.anime(5)
+    self.space_tag = self.session.tag(u'space')
 
     self.spicy_wolf = self.session.anime(2966)
     self.kadokawa = self.session.producer(352)
@@ -23,6 +24,7 @@ class testAnimeClass(object):
     self.holo = self.session.character(7373)
     self.holo_va = self.session.person(70)
     self.spicy_wolf_sequel = self.session.anime(6007)
+    self.adventure_tag = self.session.tag(u'adventure')
 
     self.space_dandy = self.session.anime(20057)
     self.funi = self.session.producer(102)
@@ -44,6 +46,8 @@ class testAnimeClass(object):
 
     self.invalid_anime = self.session.anime(457384754)
     self.latest_anime = myanimelist.anime.Anime.newest(self.session)
+
+    self.non_tagged_anime = self.session.anime(10448)
 
   @raises(TypeError)
   def testNoIDInvalidAnime(self):
@@ -238,3 +242,8 @@ class testAnimeClass(object):
     assert self.session.person(1870) in self.totoro.staff and all(x in self.totoro.staff[self.session.person(1870)] for x in [u'Director', u'Script', u'Storyboard'])
     assert isinstance(self.prisma.staff, dict) and len(self.prisma.staff) > 0
     assert self.session.person(10617) in self.prisma.staff and u'ADR Director' in self.prisma.staff[self.session.person(10617)]
+
+  def testPopularTags(self):
+    assert len(self.bebop.popular_tags) > 0 and self.space_tag in self.bebop.popular_tags
+    assert len(self.spicy_wolf.popular_tags) > 0 and self.adventure_tag in self.spicy_wolf.popular_tags
+    assert len(self.non_tagged_anime.popular_tags) == 0

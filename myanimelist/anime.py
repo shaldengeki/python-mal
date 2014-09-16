@@ -116,7 +116,6 @@ class Anime(media.Media):
       for producer_link in producers_tag.find_all('a'):
         if producer_link.text == u'add some':
           # MAL is saying "None found, add some".
-          # TODO: write a test to handle this.
           break
         link_parts = producer_link.get('href').split('p=')
         # of the form: /anime.php?p=14
