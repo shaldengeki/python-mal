@@ -73,24 +73,53 @@ class MediaList(Base, collections.Mapping):
 
       Return a dict of attributes of the media the row is about.
     """
+    row_info = {}
+
     try:
       start = utilities.parse_profile_date(soup.find('series_start').text)
     except ValueError:
       start = None
-    try:
-      end = utilities.parse_profile_date(soup.find('series_end').text)
-    except ValueError:
-      end = None
+    except:
+      if not self.session.suppress_parse_exceptions:
+        raise
+
+    if start is not None:
+      try:
+        row_info['aired'] = (start, utilities.parse_profile_date(soup.find('series_end').text))
+      except ValueError:
+        row_info['aired'] = (start, None)
+      except:
+        if not self.session.suppress_parse_exceptions:
+          raise
 
     # look up the given media type's status terms.
     status_terms = getattr(self.session, self.type)(1)._status_terms
-    return {
-      'id': int(soup.find('series_' + self.type + 'db_id').text),
-      'title': soup.find('series_title').text,
-      'status': status_terms[int(soup.find('series_status').text)],
-      'aired': (start,end),
-      'picture': soup.find('series_image').text
-    }
+
+    try:
+      row_info['id'] = int(soup.find('series_' + self.type + 'db_id').text)
+    except:
+      if not self.session.suppress_parse_exceptions:
+        raise
+
+    try:
+      row_info['title'] = soup.find('series_title').text
+    except:
+      if not self.session.suppress_parse_exceptions:
+        raise
+
+    try:
+      row_info['status'] = status_terms[int(soup.find('series_status').text)]
+    except:
+      if not self.session.suppress_parse_exceptions:
+        raise
+
+    try:
+      row_info['picture'] = soup.find('series_image').text
+    except:
+      if not self.session.suppress_parse_exceptions:
+        raise
+
+    return row_info
 
   def parse_entry(self, soup):
     """
@@ -111,19 +140,39 @@ class MediaList(Base, collections.Mapping):
       entry_info[u'started'] = utilities.parse_profile_date(soup.find(u'my_start_date').text)
     except ValueError:
       entry_info[u'started'] = None
+    except:
+      if not self.session.suppress_parse_exceptions:
+        raise
+
     try:
       entry_info[u'finished'] = utilities.parse_profile_date(soup.find(u'my_finish_date').text)
     except ValueError:
       entry_info[u'finished'] = None
+    except:
+      if not self.session.suppress_parse_exceptions:
+        raise
 
-    entry_info[u'status'] = self.user_status_terms[int(soup.find(u'my_status').text)]
+    try:
+      entry_info[u'status'] = self.user_status_terms[int(soup.find(u'my_status').text)]
+    except:
+      if not self.session.suppress_parse_exceptions:
+        raise
 
-    entry_info[u'score'] = int(soup.find(u'my_score').text)
-    # if user hasn't set a score, set it to None to indicate as such.
-    if entry_info[u'score'] == 0:
-      entry_info[u'score'] = None
+    try:
+      entry_info[u'score'] = int(soup.find(u'my_score').text)
+      # if user hasn't set a score, set it to None to indicate as such.
+      if entry_info[u'score'] == 0:
+        entry_info[u'score'] = None
+    except:
+      if not self.session.suppress_parse_exceptions:
+        raise
 
-    entry_info[u'last_updated'] = datetime.datetime.fromtimestamp(int(soup.find(u'my_last_updated').text))
+    try:
+      entry_info[u'last_updated'] = datetime.datetime.fromtimestamp(int(soup.find(u'my_last_updated').text))
+    except:
+      if not self.session.suppress_parse_exceptions:
+        raise
+
     return media,entry_info
 
   def parse_stats(self, soup):
@@ -135,24 +184,28 @@ class MediaList(Base, collections.Mapping):
     """
     stats = {}
     for row in soup.children:
-      key = row.name.replace(u'user_', u'')
-      if key == u'id':
-        stats[key] = int(row.text)
-      elif key == u'name':
-        stats[key] = row.text
-      elif key == self.verb + u'ing':
-        stats[key] = int(row.text)
-      elif key == u'completed':
-        stats[key] = int(row.text)
-      elif key == u'onhold':
-        stats['on_hold'] = int(row.text)
-      elif key == u'dropped':
-        stats[key] = int(row.text)
-      elif key == u'planto' + self.verb:
-        stats[u'plan_to_' + self.verb] = int(row.text)
-      # for some reason, MAL doesn't substitute 'read' in for manga for the verb here
-      elif key == u'days_spent_watching':
-        stats[u'days_spent'] = decimal.Decimal(row.text)
+      try:
+        key = row.name.replace(u'user_', u'')
+        if key == u'id':
+          stats[key] = int(row.text)
+        elif key == u'name':
+          stats[key] = row.text
+        elif key == self.verb + u'ing':
+          stats[key] = int(row.text)
+        elif key == u'completed':
+          stats[key] = int(row.text)
+        elif key == u'onhold':
+          stats['on_hold'] = int(row.text)
+        elif key == u'dropped':
+          stats[key] = int(row.text)
+        elif key == u'planto' + self.verb:
+          stats[u'plan_to_' + self.verb] = int(row.text)
+        # for some reason, MAL doesn't substitute 'read' in for manga for the verb here
+        elif key == u'days_spent_watching':
+          stats[u'days_spent'] = decimal.Decimal(row.text)
+      except:
+        if not self.session.suppress_parse_exceptions:
+          raise
     return stats
 
   def parse(self, xml):
@@ -177,6 +230,7 @@ class MediaList(Base, collections.Mapping):
     for row in list_page.find_all(self.type):
       (media, entry) = self.parse_entry(row)
       list_info[u'list'][media] = entry
+
     return list_info
 
   def load(self):

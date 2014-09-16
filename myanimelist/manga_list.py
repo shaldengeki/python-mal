@@ -25,11 +25,17 @@ class MangaList(media_list.MediaList):
       attributes['chapters'] = int(soup.find('series_chapters').text)
     except ValueError:
       attributes['chapters'] = None
+    except:
+      if not self.session.suppress_parse_exceptions:
+        raise
 
     try:
       attributes['volumes'] = int(soup.find('series_volumes').text)
     except ValueError:
       attributes['volumes'] = None
+    except:
+      if not self.session.suppress_parse_exceptions:
+        raise
 
     return attributes
 
@@ -40,20 +46,32 @@ class MangaList(media_list.MediaList):
       entry_info[u'chapters_read'] = int(soup.find('my_read_chapters').text)
     except ValueError:
       entry_info[u'chapters_read'] = 0
+    except:
+      if not self.session.suppress_parse_exceptions:
+        raise
 
     try:
       entry_info[u'volumes_read'] = int(soup.find('my_read_volumes').text)
     except ValueError:
       entry_info[u'volumes_read'] = 0
+    except:
+      if not self.session.suppress_parse_exceptions:
+        raise
 
     try:
       entry_info[u'rereading'] = bool(soup.find('my_rereadingg').text)
     except ValueError:
       entry_info[u'rereading'] = False
+    except:
+      if not self.session.suppress_parse_exceptions:
+        raise
 
     try:
       entry_info[u'chapters_reread'] = int(soup.find('my_rereading_chap').text)
     except ValueError:
       entry_info[u'chapters_reread'] = 0
+    except:
+      if not self.session.suppress_parse_exceptions:
+        raise
 
     return manga,entry_info

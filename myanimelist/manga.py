@@ -83,67 +83,91 @@ class Manga(media.Media):
     if error_tag:
         raise InvalidMangaError(self.id)
 
-    title_tag = manga_page.find(u'div', {'id': 'contentWrapper'}).find(u'h1')
-    if not title_tag.find(u'div'):
-      # otherwise, raise a MalformedMangaPageError.
-      raise MalformedMangaPageError(self.id, manga_page, message="Could not find title div")
+    try:
+      title_tag = manga_page.find(u'div', {'id': 'contentWrapper'}).find(u'h1')
+      if not title_tag.find(u'div'):
+        # otherwise, raise a MalformedMangaPageError.
+        raise MalformedMangaPageError(self.id, manga_page, message="Could not find title div")
+    except:
+      if not self.session.suppress_parse_exceptions:
+        raise
 
     # otherwise, begin parsing.
     manga_info = super(Manga, self).parse_sidebar(manga_page)
 
     info_panel_first = manga_page.find(u'div', {'id': 'content'}).find(u'table').find(u'td')
 
-    volumes_tag = info_panel_first.find(text=u'Volumes:').parent.parent
-    utilities.extract_tags(volumes_tag.find_all(u'span', {'class': 'dark_text'}))
-    manga_info[u'volumes'] = int(volumes_tag.text.strip()) if volumes_tag.text.strip() != 'Unknown' else None
+    try:
+      volumes_tag = info_panel_first.find(text=u'Volumes:').parent.parent
+      utilities.extract_tags(volumes_tag.find_all(u'span', {'class': 'dark_text'}))
+      manga_info[u'volumes'] = int(volumes_tag.text.strip()) if volumes_tag.text.strip() != 'Unknown' else None
+    except:
+      if not self.session.suppress_parse_exceptions:
+        raise
 
-    chapters_tag = info_panel_first.find(text=u'Chapters:').parent.parent
-    utilities.extract_tags(chapters_tag.find_all(u'span', {'class': 'dark_text'}))
-    manga_info[u'chapters'] = int(chapters_tag.text.strip()) if chapters_tag.text.strip() != 'Unknown' else None
+    try:
+      chapters_tag = info_panel_first.find(text=u'Chapters:').parent.parent
+      utilities.extract_tags(chapters_tag.find_all(u'span', {'class': 'dark_text'}))
+      manga_info[u'chapters'] = int(chapters_tag.text.strip()) if chapters_tag.text.strip() != 'Unknown' else None
+    except:
+      if not self.session.suppress_parse_exceptions:
+        raise
 
-    published_tag = info_panel_first.find(text=u'Published:').parent.parent
-    utilities.extract_tags(published_tag.find_all(u'span', {'class': 'dark_text'}))
-    published_parts = published_tag.text.strip().split(u' to ')
-    if len(published_parts) == 1:
-      # this published once.
-      try:
-        published_date = utilities.parse_profile_date(published_parts[0])
-      except ValueError:
-        raise MalformedMangaPageError(self.id, published_parts[0], message="Could not parse single publish date")
-      manga_info[u'published'] = (published_date,)
-    else:
-      # two publishing dates.
-      try:
-        publish_start = utilities.parse_profile_date(published_parts[0])
-      except ValueError:
-        raise MalformedMangaPageError(self.id, published_parts[0], message="Could not parse first of two publish dates")
-      if published_parts == u'?':
-        # this is still publishing.
-        publish_end = None
-      else:
+    try:
+      published_tag = info_panel_first.find(text=u'Published:').parent.parent
+      utilities.extract_tags(published_tag.find_all(u'span', {'class': 'dark_text'}))
+      published_parts = published_tag.text.strip().split(u' to ')
+      if len(published_parts) == 1:
+        # this published once.
         try:
-          publish_end = utilities.parse_profile_date(published_parts[1])
+          published_date = utilities.parse_profile_date(published_parts[0])
         except ValueError:
-          raise MalformedMangaPageError(self.id, published_parts[1], message="Could not parse second of two publish dates")
-      manga_info[u'published'] = (publish_start, publish_end)
+          raise MalformedMangaPageError(self.id, published_parts[0], message="Could not parse single publish date")
+        manga_info[u'published'] = (published_date,)
+      else:
+        # two publishing dates.
+        try:
+          publish_start = utilities.parse_profile_date(published_parts[0])
+        except ValueError:
+          raise MalformedMangaPageError(self.id, published_parts[0], message="Could not parse first of two publish dates")
+        if published_parts == u'?':
+          # this is still publishing.
+          publish_end = None
+        else:
+          try:
+            publish_end = utilities.parse_profile_date(published_parts[1])
+          except ValueError:
+            raise MalformedMangaPageError(self.id, published_parts[1], message="Could not parse second of two publish dates")
+        manga_info[u'published'] = (publish_start, publish_end)
+    except:
+      if not self.session.suppress_parse_exceptions:
+        raise
 
-    authors_tag = info_panel_first.find(text=u'Authors:').parent.parent
-    utilities.extract_tags(authors_tag.find_all(u'span', {'class': 'dark_text'}))
-    manga_info[u'authors'] = {}
-    for author_link in authors_tag.find_all('a'):
-      link_parts = author_link.get('href').split('/')
-      # of the form /people/1867/Naoki_Urasawa
-      person = self.session.person(int(link_parts[2])).set({'name': author_link.text})
-      role = author_link.nextSibling.replace(' (', '').replace(')', '')
-      manga_info[u'authors'][person] = role
+    try:
+      authors_tag = info_panel_first.find(text=u'Authors:').parent.parent
+      utilities.extract_tags(authors_tag.find_all(u'span', {'class': 'dark_text'}))
+      manga_info[u'authors'] = {}
+      for author_link in authors_tag.find_all('a'):
+        link_parts = author_link.get('href').split('/')
+        # of the form /people/1867/Naoki_Urasawa
+        person = self.session.person(int(link_parts[2])).set({'name': author_link.text})
+        role = author_link.nextSibling.replace(' (', '').replace(')', '')
+        manga_info[u'authors'][person] = role
+    except:
+      if not self.session.suppress_parse_exceptions:
+        raise
 
-    serialization_tag = info_panel_first.find(text=u'Serialization:').parent.parent
-    publication_link = serialization_tag.find('a')
-    manga_info[u'serialization'] = None
-    if publication_link:
-      link_parts = publication_link.get('href').split('mid=')
-      # of the form /manga.php?mid=1
-      manga_info[u'serialization'] = self.session.publication(int(link_parts[1])).set({'name': publication_link.text})
+    try:
+      serialization_tag = info_panel_first.find(text=u'Serialization:').parent.parent
+      publication_link = serialization_tag.find('a')
+      manga_info[u'serialization'] = None
+      if publication_link:
+        link_parts = publication_link.get('href').split('mid=')
+        # of the form /manga.php?mid=1
+        manga_info[u'serialization'] = self.session.publication(int(link_parts[1])).set({'name': publication_link.text})
+    except:
+      if not self.session.suppress_parse_exceptions:
+        raise
 
     return manga_info
 

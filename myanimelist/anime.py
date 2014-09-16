@@ -95,60 +95,80 @@ class Anime(media.Media):
     anime_info = super(Anime, self).parse_sidebar(anime_page)
     info_panel_first = anime_page.find(u'div', {'id': 'content'}).find(u'table').find(u'td')
 
-    episode_tag = info_panel_first.find(text=u'Episodes:').parent.parent
-    utilities.extract_tags(episode_tag.find_all(u'span', {'class': 'dark_text'}))
-    anime_info[u'episodes'] = int(episode_tag.text.strip()) if episode_tag.text.strip() != 'Unknown' else 0
+    try:
+      episode_tag = info_panel_first.find(text=u'Episodes:').parent.parent
+      utilities.extract_tags(episode_tag.find_all(u'span', {'class': 'dark_text'}))
+      anime_info[u'episodes'] = int(episode_tag.text.strip()) if episode_tag.text.strip() != 'Unknown' else 0
+    except:
+      if not self.session.suppress_parse_exceptions:
+        raise
 
-    aired_tag = info_panel_first.find(text=u'Aired:').parent.parent
-    utilities.extract_tags(aired_tag.find_all(u'span', {'class': 'dark_text'}))
-    aired_parts = aired_tag.text.strip().split(u' to ')
-    if len(aired_parts) == 1:
-      # this aired once.
-      try:
-        aired_date = utilities.parse_profile_date(aired_parts[0])
-      except ValueError:
-        raise MalformedAnimePageError(self.id, aired_parts[0], message="Could not parse single air date")
-      anime_info[u'aired'] = (aired_date,)
-    else:
-      # two airing dates.
-      try:
-        air_start = utilities.parse_profile_date(aired_parts[0])
-      except ValueError:
-        raise MalformedAnimePageError(self.id, aired_parts[0], message="Could not parse first of two air dates")
-      try:
-        air_end = utilities.parse_profile_date(aired_parts[1])
-      except ValueError:
-        raise MalformedAnimePageError(self.id, aired_parts[1], message="Could not parse second of two air dates")
-      anime_info[u'aired'] = (air_start, air_end)
+    try:
+      aired_tag = info_panel_first.find(text=u'Aired:').parent.parent
+      utilities.extract_tags(aired_tag.find_all(u'span', {'class': 'dark_text'}))
+      aired_parts = aired_tag.text.strip().split(u' to ')
+      if len(aired_parts) == 1:
+        # this aired once.
+        try:
+          aired_date = utilities.parse_profile_date(aired_parts[0], suppress=self.session.suppress_parse_exceptions)
+        except ValueError:
+          raise MalformedAnimePageError(self.id, aired_parts[0], message="Could not parse single air date")
+        anime_info[u'aired'] = (aired_date,)
+      else:
+        # two airing dates.
+        try:
+          air_start = utilities.parse_profile_date(aired_parts[0], suppress=self.session.suppress_parse_exceptions)
+        except ValueError:
+          raise MalformedAnimePageError(self.id, aired_parts[0], message="Could not parse first of two air dates")
+        try:
+          air_end = utilities.parse_profile_date(aired_parts[1], suppress=self.session.suppress_parse_exceptions)
+        except ValueError:
+          raise MalformedAnimePageError(self.id, aired_parts[1], message="Could not parse second of two air dates")
+        anime_info[u'aired'] = (air_start, air_end)
+    except:
+      if not self.session.suppress_parse_exceptions:
+        raise
 
-    producers_tag = info_panel_first.find(text=u'Producers:').parent.parent
-    utilities.extract_tags(producers_tag.find_all(u'span', {'class': 'dark_text'}))
-    utilities.extract_tags(producers_tag.find_all(u'sup'))
-    anime_info[u'producers'] = []
-    for producer_link in producers_tag.find_all('a'):
-      link_parts = producer_link.get('href').split('p=')
-      # of the form: /anime.php?p=14
-      anime_info[u'producers'].append(self.session.producer(int(link_parts[1])).set({'name': producer_link.text}))
+    try:
+      producers_tag = info_panel_first.find(text=u'Producers:').parent.parent
+      utilities.extract_tags(producers_tag.find_all(u'span', {'class': 'dark_text'}))
+      utilities.extract_tags(producers_tag.find_all(u'sup'))
+      anime_info[u'producers'] = []
+      for producer_link in producers_tag.find_all('a'):
+        link_parts = producer_link.get('href').split('p=')
+        # of the form: /anime.php?p=14
+        anime_info[u'producers'].append(self.session.producer(int(link_parts[1])).set({'name': producer_link.text}))
+    except:
+      if not self.session.suppress_parse_exceptions:
+        raise
 
-    duration_tag = info_panel_first.find(text=u'Duration:').parent.parent
-    utilities.extract_tags(duration_tag.find_all(u'span', {'class': 'dark_text'}))
-    anime_info[u'duration'] = duration_tag.text.strip()
-    duration_parts = [part.strip() for part in anime_info[u'duration'].split(u'.')]
-    duration_mins = 0
-    for part in duration_parts:
-      part_match = re.match(u'(?P<num>[0-9]+)', part)
-      if not part_match:
-        continue
-      part_volume = int(part_match.group(u'num'))
-      if part.endswith(u'hr'):
-        duration_mins += part_volume * 60
-      elif part.endswith(u'min'):
-        duration_mins += part_volume
-    anime_info[u'duration'] = datetime.timedelta(minutes=duration_mins)
+    try:
+      duration_tag = info_panel_first.find(text=u'Duration:').parent.parent
+      utilities.extract_tags(duration_tag.find_all(u'span', {'class': 'dark_text'}))
+      anime_info[u'duration'] = duration_tag.text.strip()
+      duration_parts = [part.strip() for part in anime_info[u'duration'].split(u'.')]
+      duration_mins = 0
+      for part in duration_parts:
+        part_match = re.match(u'(?P<num>[0-9]+)', part)
+        if not part_match:
+          continue
+        part_volume = int(part_match.group(u'num'))
+        if part.endswith(u'hr'):
+          duration_mins += part_volume * 60
+        elif part.endswith(u'min'):
+          duration_mins += part_volume
+      anime_info[u'duration'] = datetime.timedelta(minutes=duration_mins)
+    except:
+      if not self.session.suppress_parse_exceptions:
+        raise
 
-    rating_tag = info_panel_first.find(text=u'Rating:').parent.parent
-    utilities.extract_tags(rating_tag.find_all(u'span', {'class': 'dark_text'}))
-    anime_info[u'rating'] = rating_tag.text.strip()
+    try:
+      rating_tag = info_panel_first.find(text=u'Rating:').parent.parent
+      utilities.extract_tags(rating_tag.find_all(u'span', {'class': 'dark_text'}))
+      anime_info[u'rating'] = rating_tag.text.strip()
+    except:
+      if not self.session.suppress_parse_exceptions:
+        raise
 
     return anime_info    
 
@@ -166,62 +186,71 @@ class Anime(media.Media):
     """
     anime_info = self.parse_sidebar(character_page)
 
-    character_title = filter(lambda x: 'Characters & Voice Actors' in x.text, character_page.find_all(u'h2'))
-    anime_info[u'characters'] = {}
-    anime_info[u'voice_actors'] = {}
-    if character_title:
-      character_title = character_title[0]
-      curr_elt = character_title.nextSibling
-      while True:
-        if curr_elt.name != u'table':
-          break
-        curr_row = curr_elt.find(u'tr')
-        # character in second col, VAs in third.
-        (_, character_col, va_col) = curr_row.find_all(u'td', recursive=False)
+    try:
+      character_title = filter(lambda x: 'Characters & Voice Actors' in x.text, character_page.find_all(u'h2'))
+      anime_info[u'characters'] = {}
+      anime_info[u'voice_actors'] = {}
+      if character_title:
+        character_title = character_title[0]
+        curr_elt = character_title.nextSibling
+        while True:
+          if curr_elt.name != u'table':
+            break
+          curr_row = curr_elt.find(u'tr')
+          # character in second col, VAs in third.
+          (_, character_col, va_col) = curr_row.find_all(u'td', recursive=False)
 
-        character_link = character_col.find(u'a')
-        character_name = ' '.join(reversed(character_link.text.split(u', ')))
-        link_parts = character_link.get(u'href').split(u'/')
-        # of the form /character/7373/Holo
-        character = self.session.character(int(link_parts[2])).set({'name': character_name})
-        role = character_col.find(u'small').text
-        character_entry = {'role': role, 'voice_actors': {}}
+          character_link = character_col.find(u'a')
+          character_name = ' '.join(reversed(character_link.text.split(u', ')))
+          link_parts = character_link.get(u'href').split(u'/')
+          # of the form /character/7373/Holo
+          character = self.session.character(int(link_parts[2])).set({'name': character_name})
+          role = character_col.find(u'small').text
+          character_entry = {'role': role, 'voice_actors': {}}
 
-        va_table = va_col.find(u'table')
-        if va_table:
-          for row in va_table.find_all(u'tr'):
-            va_info_cols = row.find_all(u'td')
-            if not va_info_cols:
-              # don't ask me why MAL has an extra blank table row i don't know!!!
-              continue
-            va_info_col = va_info_cols[0]
-            va_link = va_info_col.find(u'a')
-            if va_link:
-              va_name = ' '.join(reversed(va_link.text.split(u', ')))
-              link_parts = va_link.get(u'href').split(u'/')
-              # of the form /people/70/Ami_Koshimizu
-              person = self.session.person(int(link_parts[2])).set({'name': va_name})
-              language = va_info_col.find(u'small').text
-              anime_info[u'voice_actors'][person] = {'role': role, 'character': character, 'language': language}
-              character_entry[u'voice_actors'][person] = language
-        anime_info[u'characters'][character] = character_entry
-        curr_elt = curr_elt.nextSibling
+          va_table = va_col.find(u'table')
+          if va_table:
+            for row in va_table.find_all(u'tr'):
+              va_info_cols = row.find_all(u'td')
+              if not va_info_cols:
+                # don't ask me why MAL has an extra blank table row i don't know!!!
+                continue
+              va_info_col = va_info_cols[0]
+              va_link = va_info_col.find(u'a')
+              if va_link:
+                va_name = ' '.join(reversed(va_link.text.split(u', ')))
+                link_parts = va_link.get(u'href').split(u'/')
+                # of the form /people/70/Ami_Koshimizu
+                person = self.session.person(int(link_parts[2])).set({'name': va_name})
+                language = va_info_col.find(u'small').text
+                anime_info[u'voice_actors'][person] = {'role': role, 'character': character, 'language': language}
+                character_entry[u'voice_actors'][person] = language
+          anime_info[u'characters'][character] = character_entry
+          curr_elt = curr_elt.nextSibling
+    except:
+      if not self.session.suppress_parse_exceptions:
+        raise
 
-    staff_title = filter(lambda x: 'Staff' in x.text, character_page.find_all(u'h2'))
-    anime_info[u'staff'] = {}
-    if staff_title:
-      staff_title = staff_title[0]
-      staff_table = staff_title.nextSibling.nextSibling
-      for row in staff_table.find_all(u'tr'):
-        # staff info in second col.
-        info = row.find_all(u'td')[1]
-        staff_link = info.find(u'a')
-        staff_name = ' '.join(reversed(staff_link.text.split(u', ')))
-        link_parts = staff_link.get(u'href').split(u'/')
-        # of the form /people/1870/Miyazaki_Hayao
-        person = self.session.person(int(link_parts[2])).set({'name': staff_name})
-        # staff role(s).
-        anime_info[u'staff'][person] = set(info.find(u'small').text.split(u', '))
+    try:
+      staff_title = filter(lambda x: 'Staff' in x.text, character_page.find_all(u'h2'))
+      anime_info[u'staff'] = {}
+      if staff_title:
+        staff_title = staff_title[0]
+        staff_table = staff_title.nextSibling.nextSibling
+        for row in staff_table.find_all(u'tr'):
+          # staff info in second col.
+          info = row.find_all(u'td')[1]
+          staff_link = info.find(u'a')
+          staff_name = ' '.join(reversed(staff_link.text.split(u', ')))
+          link_parts = staff_link.get(u'href').split(u'/')
+          # of the form /people/1870/Miyazaki_Hayao
+          person = self.session.person(int(link_parts[2])).set({'name': staff_name})
+          # staff role(s).
+          anime_info[u'staff'][person] = set(info.find(u'small').text.split(u', '))
+    except:
+      if not self.session.suppress_parse_exceptions:
+        raise
+    
     return anime_info
     
   @property

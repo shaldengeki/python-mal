@@ -25,7 +25,10 @@ class AnimeList(media_list.MediaList):
       attributes['episodes'] = int(soup.find('series_episodes').text)
     except ValueError:
       attributes['episodes'] = None
-
+    except:
+      if not self.session.suppress_parse_exceptions:
+        raise
+    
     return attributes
 
   def parse_entry(self, soup):
@@ -35,16 +38,25 @@ class AnimeList(media_list.MediaList):
       entry_info[u'episodes_watched'] = int(soup.find('my_watched_episodes').text)
     except ValueError:
       entry_info[u'episodes_watched'] = 0
+    except:
+      if not self.session.suppress_parse_exceptions:
+        raise
 
     try:
       entry_info[u'rewatching'] = bool(soup.find('my_rewatching').text)
     except ValueError:
       entry_info[u'rewatching'] = False
+    except:
+      if not self.session.suppress_parse_exceptions:
+        raise
 
     try:
       entry_info[u'episodes_rewatched'] = int(soup.find('my_rewatching_ep').text)
     except ValueError:
       entry_info[u'episodes_rewatched'] = 0
+    except:
+      if not self.session.suppress_parse_exceptions:
+        raise
 
     return anime,entry_info
 

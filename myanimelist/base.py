@@ -111,7 +111,6 @@ class Base(object):
 
     """
     self.session = session
-    self.suppress_exceptions = False
 
   @abc.abstractmethod
   def load(self):
