@@ -38,7 +38,7 @@ class MediaList(Base, collections.Mapping):
   def __init__(self, session, user_name):
     super(MediaList, self).__init__(session)
     self.username = user_name
-    if not isinstance(self.username, unicode) or len(self.username) < 4:
+    if not isinstance(self.username, unicode) or len(self.username) < 3:
       raise InvalidMediaListError(self.username)
     self._list = None
     self._stats = None
