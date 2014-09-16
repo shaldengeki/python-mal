@@ -135,6 +135,9 @@ class Anime(media.Media):
       utilities.extract_tags(producers_tag.find_all(u'sup'))
       anime_info[u'producers'] = []
       for producer_link in producers_tag.find_all('a'):
+        if producer_link.text == u'add some':
+          # MAL is saying "None found, add some".
+          break
         link_parts = producer_link.get('href').split('p=')
         # of the form: /anime.php?p=14
         anime_info[u'producers'].append(self.session.producer(int(link_parts[1])).set({'name': producer_link.text}))
