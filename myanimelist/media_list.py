@@ -191,18 +191,36 @@ class MediaList(Base, collections.Mapping):
         elif key == u'name':
           stats[key] = row.text
         elif key == self.verb + u'ing':
-          stats[key] = int(row.text)
+          try:
+            stats[key] = int(row.text)
+          except ValueError:
+            stats[key] = 0
         elif key == u'completed':
-          stats[key] = int(row.text)
+          try:
+            stats[key] = int(row.text)
+          except ValueError:
+            stats[key] = 0
         elif key == u'onhold':
-          stats['on_hold'] = int(row.text)
+          try:
+            stats['on_hold'] = int(row.text)
+          except ValueError:
+            stats[key] = 0
         elif key == u'dropped':
-          stats[key] = int(row.text)
+          try:
+            stats[key] = int(row.text)
+          except ValueError:
+            stats[key] = 0
         elif key == u'planto' + self.verb:
-          stats[u'plan_to_' + self.verb] = int(row.text)
+          try:
+            stats[u'plan_to_' + self.verb] = int(row.text)
+          except ValueError:
+            stats[key] = 0
         # for some reason, MAL doesn't substitute 'read' in for manga for the verb here
         elif key == u'days_spent_watching':
-          stats[u'days_spent'] = decimal.Decimal(row.text)
+          try:
+            stats[u'days_spent'] = decimal.Decimal(row.text)
+          except ValueError:
+            stats[key] = decimal.Decimal(0)
       except:
         if not self.session.suppress_parse_exceptions:
           raise
