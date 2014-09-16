@@ -25,28 +25,6 @@ class Manga(media.Media):
   ]
   _consuming_verb = "read"
 
-  @staticmethod
-  def newest(session):
-    """Fetches the latest manga added to MAL.
-
-    :type session: :class:`myanimelist.session.Session`
-    :param session: A valid MAL session
-
-    :rtype: :class:`.Manga`
-    :return: the newest manga on MAL
-
-    :raises: :class:`.MalformedMangaPageError`
-
-    """
-    # TODO: have Media subsume this responsibility
-    p = session.session.get(u'http://myanimelist.net/manga.php?o=9&c[]=a&c[]=d&cv=2&w=1').text
-    soup = utilities.get_clean_dom(p)
-    latest_entry = soup.find(u"div", {u"class": u"hoverinfo"})
-    if not latest_entry:
-      raise MalformedMangaPageError(0, p, u"No manga entries found on recently-added page")
-    latest_id = int(latest_entry[u'rel'][1:])
-    return Manga(session, latest_id)
-
   def __init__(self, session, manga_id):
     """Creates a new instance of Manga.
 

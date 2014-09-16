@@ -44,6 +44,28 @@ class Media(Base):
     """
     pass
 
+  @classmethod
+  def newest(cls, session):
+    """Fetches the latest media added to MAL.
+
+    :type session: :class:`myanimelist.session.Session`
+    :param session: A valid MAL session
+
+    :rtype: :class:`.Media`
+    :return: the newest media on MAL
+
+    :raises: :class:`.MalformedMediaPageError`
+
+    """
+    media_type = cls.__name__.lower()
+    p = session.session.get(u'http://myanimelist.net/' + media_type + '.php?o=9&c[]=a&c[]=d&cv=2&w=1').text
+    soup = utilities.get_clean_dom(p)
+    latest_entry = soup.find(u"div", {u"class": u"hoverinfo"})
+    if not latest_entry:
+      raise MalformedMediaPageError(0, p, u"No media entries found on recently-added page")
+    latest_id = int(latest_entry[u'rel'][1:])
+    return getattr(session, media_type)(latest_id)
+
   def __init__(self, session, id):
     """Creates an instance of Media.
 
