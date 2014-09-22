@@ -57,7 +57,7 @@ class UnauthorizedError(Error):
 class Session(object):
   """Class to handle requests to MAL. Handles login, setting HTTP headers, etc.
   """
-  def __init__(self, username=None, password=None):
+  def __init__(self, username=None, password=None, user_agent="iMAL-iOS"):
     """Creates a new instance of Session.
 
     :type username: str
@@ -65,6 +65,9 @@ class Session(object):
 
     :type password: str
     :param username: A MAL password. May be omitted.
+
+    :type user_agent: str
+    :param user_agent: A user-agent to send to MAL in requests. If you have a user-agent assigned to you by Incapsula, pass it in here.
 
     :rtype: :class:`.Session`
     :return: The desired session.
@@ -74,11 +77,12 @@ class Session(object):
     self.password = password
     self.session = requests.Session()
     self.session.headers.update({
-      'User-Agent': 'iMAL-iOS'
+      'User-Agent': user_agent
     })
-    """
-      TODO: pass this into spawned objects
-      make this setting actually do something
+
+    """Suppresses any Malformed*PageError exceptions raised during parsing.
+
+    Attributes which raise these exceptions will be set to None.
     """
     self.suppress_parse_exceptions = False
 
