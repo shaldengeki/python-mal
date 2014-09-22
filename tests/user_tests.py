@@ -32,9 +32,9 @@ class testUserClass(object):
     self.kugimiya = self.session.person(8)
     self.kayano = self.session.person(10765)
 
-    self.saka = self.session.user(u'saka')
-    self.mal_api_club = self.session.club(13727)
-    self.taiga_club = self.session.club(21400)
+    self.naruleach = self.session.user(u'Naruleach')
+    self.mal_rewrite_club = self.session.club(6498)
+    self.fantasy_anime_club = self.session.club(379)
 
     self.smooched = self.session.user(u'Smooched')
     self.sao = self.session.anime(11757)
@@ -119,7 +119,7 @@ class testUserClass(object):
   def testAccessRank(self):
     assert self.shal.access_rank == u'Member'
     assert self.mona.access_rank == u'Member'
-    assert self.saka.access_rank == u'Forum Moderator'
+    assert self.naruleach.access_rank == u'Anime DB Moderator'
 
   def testAnimeListViews(self):
     assert isinstance(self.shal.anime_list_views, int) and self.shal.anime_list_views >= 1767
@@ -184,14 +184,14 @@ class testUserClass(object):
     assert isinstance(self.shal.recommendations[self.kanon][u'date'], datetime.date) and self.shal.recommendations[self.kanon][u'date'] == datetime.date(year=2009, month=3, day=13)
     assert isinstance(self.shal.recommendations[self.kanon][u'text'], unicode) and len(self.shal.recommendations[self.kanon][u'text']) > 0
     assert isinstance(self.mona.recommendations, dict) and len(self.mona.recommendations) == 0
-    assert isinstance(self.saka.recommendations, dict) and len(self.saka.recommendations) >= 15
+    assert isinstance(self.naruleach.recommendations, dict) and len(self.naruleach.recommendations) >= 15
     assert isinstance(self.threger.recommendations, dict) and len(self.threger.recommendations) == 0
 
   def testClubs(self):
     assert isinstance(self.shal.clubs, list) and len(self.shal.clubs) == 7
     assert self.fang_tan_club in self.shal.clubs and self.satsuki_club in self.shal.clubs
-    assert isinstance(self.saka.clubs, list) and len(self.saka.clubs) >= 10
-    assert self.mal_api_club in self.saka.clubs and self.taiga_club in self.saka.clubs
+    assert isinstance(self.naruleach.clubs, list) and len(self.naruleach.clubs) >= 10
+    assert self.mal_rewrite_club in self.naruleach.clubs and self.fantasy_anime_club in self.naruleach.clubs
     assert isinstance(self.threger.clubs, list) and len(self.threger.clubs) == 0
 
   def testFriends(self):
