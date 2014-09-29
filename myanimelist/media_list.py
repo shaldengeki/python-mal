@@ -56,15 +56,13 @@ class MediaList(Base, collections.Mapping):
   # a list with status ints as indices and status texts as values.
   @property
   def user_status_terms(self):
-    return [
-      u'Unknown',
-      self.verb.capitalize() + u'ing',
-      u'Completed',
-      u'On-Hold',
-      u'Dropped',
-      u'Unknown',
-      u'Plan to ' + self.verb.capitalize()
-    ]
+    statuses = collections.defaultdict(lambda: u'Unknown')
+    statuses[1] = self.verb.capitalize() + u'ing'
+    statuses[2] = u'Completed'
+    statuses[3] = u'On-Hold'
+    statuses[4] = u'Dropped'
+    statuses[6] = u'Plan to ' + self.verb.capitalize()
+    return statuses
 
   def parse_entry_media_attributes(self, soup):
     """
