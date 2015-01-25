@@ -119,7 +119,8 @@ class Anime(media.Media):
           break
         link_parts = producer_link.get('href').split('p=')
         # of the form: /anime.php?p=14
-        anime_info[u'producers'].append(self.session.producer(int(link_parts[1])).set({'name': producer_link.text}))
+        if len(link_parts) > 1:
+          anime_info[u'producers'].append(self.session.producer(int(link_parts[1])).set({'name': producer_link.text}))
     except:
       if not self.session.suppress_parse_exceptions:
         raise
