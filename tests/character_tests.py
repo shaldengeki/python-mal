@@ -42,7 +42,7 @@ class testCharacterClass(object):
 
   def testFullName(self):
     assert self.spike.full_name == u'Spike  Spiegel'
-    assert self.ed.full_name == u'Edward "Ed, Fullmetal Alchemist, Pipsqueak, Hagane no shounen, Chibi" Elric'
+    assert self.ed.full_name == u'Edward "Ed, Fullmetal Alchemist, Hagane no shounen, Chibi, Pipsqueak" Elric'
     assert self.maria.full_name == u'Maria'
 
   def testJapaneseName(self):

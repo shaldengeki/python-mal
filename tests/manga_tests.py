@@ -106,7 +106,7 @@ class testMangaClass(object):
     assert self.monster.volumes == 18
     assert self.tomoyo_after.volumes == 1
     assert self.naruto.volumes == 72
-    assert self.judos.volumes == None
+    assert self.judos.volumes == 3
 
   def testChapters(self):
     assert self.holic.chapters == 213
