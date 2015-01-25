@@ -105,26 +105,26 @@ class testMangaClass(object):
     assert self.holic.volumes == 19
     assert self.monster.volumes == 18
     assert self.tomoyo_after.volumes == 1
-    assert self.naruto.volumes == None
+    assert self.naruto.volumes == 72
     assert self.judos.volumes == None
 
   def testChapters(self):
     assert self.holic.chapters == 213
     assert self.monster.chapters == 162
     assert self.tomoyo_after.chapters == 4
-    assert self.naruto.chapters == None
+    assert self.naruto.chapters == 700
     assert self.judos.chapters == None
 
   def testStatus(self):
     assert self.holic.status == u'Finished'
     assert self.tomoyo_after.status == u'Finished'
     assert self.monster.status == u'Finished'
-    assert self.naruto.status == u'Publishing'
+    assert self.naruto.status == u'Finished'
 
   def testPublished(self):
     assert self.holic.published == (datetime.date(month=2, day=24, year=2003), datetime.date(month=2, day=9, year=2011))
     assert self.monster.published == (datetime.date(month=12, day=5, year=1994), datetime.date(month=12, day=20, year=2001))
-    assert self.naruto.published == (datetime.date(month=9, day=21, year=1999),None)
+    assert self.naruto.published == (datetime.date(month=9, day=21, year=1999),datetime.date(month=11, day=10, year=2014))
     assert self.tomoyo_after.published == (datetime.date(month=4, day=20, year=2007), datetime.date(month=10, day=20, year=2007))
 
   def testGenres(self):
